@@ -1,318 +1,721 @@
-<!DOCTYPE html>  <html lang="pt-br">  
-<head>  
-<meta charset="UTF-8">  
-<title>O Guarani RPG Responsivo</title>  <style>  
-.hidden { display: none; }  
-  
-body {  
-    margin: 0;  
-    font-family: monospace;  
-    background: #6cab4f; /* fundo verde */  
-    display: flex;  
-    justify-content: center;  
-    align-items: center;  
-    height: 100vh;  
-}  
-  
-/* === CONTAINER DO JOGO === */  
-#game {  
-    width: 650px;  
-    height: 420px;  
-    position: relative;  
-}  
-  
-/* FUNDO */  
-#bg {  
-    position: absolute;  
-    top: 0;  
-    width: 100%;  
-    height: 72%;  
-    background-size: cover;  
-    background-position: center;  
-    border-top: 5px solid #000; /* preto claro topo */  
-    border-left: 5px solid #000;   
-    border-right: 5px solid #000;  
-    box-sizing: border-box;  
-}  
-  
-/* PERSONAGEM */  
-#character {  
-    position: absolute;  
-    bottom: 90px;  
-    left: 30px;  
-    width: 70px;  
-    image-rendering: pixelated;  
-    z-index: 3;  
-}  
-  
-/* NOME DO PERSONAGEM */  
-#nameBox {  
-    position: absolute;  
-    bottom: 150px;  
-    left: 110px;  
-    background: white;  
-    border: 3px solid #000; /* borda preta */  
-    padding: 4px 10px;  
-    font-size: 13px;  
-    z-index: 4;  
-}  
-  
-/* CAIXA DE TEXTO */  
-#dialog {  
-    position: absolute;  
-    bottom: 0;  
-    width: 100%;  
-    height: 28%;  
-    background: #ddd;  
-    border-bottom: 5px solid #000; /* borda preta fundo */  
-    border-left: 5px solid #000;  
-    border-right: 5px solid #000;  
-    box-sizing: border-box;  
-    padding: 15px;  
-}  
-  
-/* TEXTO */  
-#text {  
-    font-size: 14px;  
-    line-height: 1.6;  
-}  
-  
-/* BOTÃO SKIP */  
-#skip {  
-    position: absolute;  
-    left: 12px;  
-    bottom: 10px;  
-    background: black;  
-    color: white;  
-    padding: 5px 14px;  
-    font-size: 11px;  
-    cursor: pointer;  
-}  
-  
-/* QUIZ */  
-#choices {  
-    margin-top: 10px;  
-    display: grid;  
-    grid-template-columns: 1fr 1fr;  
-    gap: 8px;  
-}  
-  
-#choices button {  
-    padding: 10px;  
-    border: 2px solid black;  
-    background: white;  
-    font-size: 12px;  
-}  
-  
-/* TELA FINAL */  
-#finalScreen {  
-    position: fixed;  
-    width: 100%;  
-    height: 100%;  
-    background: black;  
-    display: none;  
-    justify-content: center;  
-    align-items: center;  
-}  
-  
-#finalBox {  
-    background: #222;  
-    border: 6px solid #00ffcc;  
-    padding: 30px;  
-    text-align: center;  
-    color: #00ffcc;  
-    font-size: 18px;  
-}  
-  
-/* === RESPONSIVO: PAISAGEM === */  
-@media (orientation: landscape) {  
-    #game {  
-        width: 100vw;  
-        height: 100vh;  
-    }  
-    #character {  
-        bottom: 28%; /* alinhado com o topo da caixa de diálogo */  
-        max-width: 12vw;  
-    }  
-    #nameBox {  
-        bottom: 35%;  
-        font-size: 1.2vw;  
-        left: 20%;  
-    }  
-    #dialog {  
-        height: 28%;  
-        padding: 2%;  
-    }  
-    #text {  
-        font-size: 1.2vw;  
-    }  
-    #skip {  
-        font-size: 1vw;  
-        padding: 0.5vw 1.5vw;  
-    }  
-    #choices button {  
-        font-size: 1vw;  
-        padding: 1vh 0;  
-    }  
-}  
-</style>  </head>  <body>  <div id="game">  
-    <div id="bg"></div>  
-    <img id="character" src="img/alencar.png">  
-    <div id="nameBox">Alencar</div>  <div id="dialog">  
-    <div id="text"></div>  
-    <div id="choices" class="hidden"></div>  
-    <div id="skip">SKIP</div>  
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>O Guarani RPG Responsivo</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* Pixel font stack — works 100% offline */
+:root {
+  --rpg-font: 'Courier New', 'Lucida Console', monospace;
+}
+
+:root {
+  --rpg-gold: #f8d870;
+  --rpg-gold-dark: #c8a820;
+  --rpg-dark: #0a0a0a;
+  --rpg-panel: #1a1a2e;
+  --rpg-panel-light: #16213e;
+  --rpg-border: #f8d870;
+  --rpg-text: #f0e6c8;
+  --rpg-green-bg: #3a7a2a;
+  --rpg-white: #f0e6c8;
+  --rpg-shadow: #000;
+  --pixel: 3px;
+}
+
+body {
+  margin: 0;
+  font-family: var(--rpg-font);
+  background: #2d4a1e;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(0,0,0,0.08) 3px,
+      rgba(0,0,0,0.08) 4px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 3px,
+      rgba(0,0,0,0.08) 3px,
+      rgba(0,0,0,0.08) 4px
+    );
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* === CONTAINER DO JOGO === */
+#game {
+  width: 650px;
+  height: 420px;
+  position: relative;
+  image-rendering: pixelated;
+  /* Pixel-art double border effect */
+  outline: 4px solid #000;
+  box-shadow:
+    0 0 0 8px var(--rpg-gold),
+    0 0 0 12px #000,
+    0 0 40px rgba(0,0,0,0.8);
+}
+
+/* Scanline overlay for CRT feel */
+#game::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.04) 2px,
+    rgba(0,0,0,0.04) 4px
+  );
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* FUNDO */
+#bg {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 72%;
+  background-size: cover;
+  background-position: center;
+  border-top: 4px solid #000;
+  border-left: 4px solid #000;
+  border-right: 4px solid #000;
+  box-sizing: border-box;
+  transition: opacity 0.4s ease;
+  image-rendering: pixelated;
+}
+
+/* Scene transition flash */
+#bg.changing {
+  opacity: 0;
+}
+
+/* PERSONAGEM */
+#character {
+  position: absolute;
+  bottom: 90px;
+  left: 30px;
+  width: 72px;
+  image-rendering: pixelated;
+  z-index: 3;
+  filter: drop-shadow(3px 3px 0 rgba(0,0,0,0.7));
+  transition: opacity 0.3s ease;
+}
+
+/* Idle bob animation */
+@keyframes charBob {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-3px); }
+}
+#character:not(.hidden) {
+  animation: charBob 1.8s ease-in-out infinite;
+}
+
+/* NOME DO PERSONAGEM */
+#nameBox {
+  position: absolute;
+  bottom: 150px;
+  left: 110px;
+  background: var(--rpg-panel);
+  color: var(--rpg-gold);
+  font-family: var(--rpg-font);
+  font-size: 12px;
+  padding: 5px 10px;
+  z-index: 4;
+  letter-spacing: 1px;
+  /* Pixel-perfect border */
+  border: 2px solid var(--rpg-gold);
+  outline: 2px solid #000;
+  box-shadow: 3px 3px 0 #000;
+  text-transform: uppercase;
+}
+
+/* CAIXA DE TEXTO */
+#dialog {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 28%;
+  background: var(--rpg-panel);
+  border-top: 4px solid var(--rpg-gold);
+  border-bottom: 4px solid #000;
+  border-left: 4px solid #000;
+  border-right: 4px solid #000;
+  box-sizing: border-box;
+  padding: 12px 14px 10px 14px;
+  /* Inner highlight lines for depth */
+  box-shadow: inset 0 1px 0 rgba(248,216,112,0.15);
+}
+
+/* Top decorative bar on dialog */
+#dialog::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: -4px;
+  right: -4px;
+  height: 4px;
+  background: #000;
+}
+
+/* Corner pixel accents */
+#dialog::after {
+  content: '▶';
+  position: absolute;
+  right: 14px;
+  bottom: 10px;
+  color: var(--rpg-gold);
+  font-size: 8px;
+  opacity: 0;
+  animation: blink 0.8s step-end infinite;
+}
+#dialog.done::after { opacity: 1; }
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* TEXTO */
+#text {
+  font-family: var(--rpg-font);
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--rpg-text);
+  letter-spacing: 0.3px;
+  min-height: 48px;
+}
+
+/* BOTÃO SKIP */
+#skip {
+  position: absolute;
+  left: 14px;
+  bottom: 10px;
+  background: var(--rpg-dark);
+  color: var(--rpg-gold);
+  font-family: var(--rpg-font);
+  font-size: 11px;
+  padding: 6px 12px;
+  cursor: pointer;
+  border: 2px solid var(--rpg-gold);
+  outline: 1px solid #000;
+  box-shadow: 2px 2px 0 #000;
+  letter-spacing: 1px;
+  user-select: none;
+  transition: transform 0.08s, box-shadow 0.08s;
+  text-transform: uppercase;
+}
+
+#skip:active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+#skip:hover {
+  background: var(--rpg-gold-dark);
+  color: #000;
+}
+
+/* QUIZ */
+#choices {
+  margin-top: 6px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+#choices button {
+  padding: 7px 6px;
+  border: 2px solid var(--rpg-gold);
+  outline: 1px solid #000;
+  background: var(--rpg-panel-light);
+  color: var(--rpg-text);
+  font-family: var(--rpg-font);
+  font-size: 11px;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 #000;
+  transition: transform 0.08s, box-shadow 0.08s, background 0.1s;
+  text-align: left;
+  line-height: 1.6;
+  letter-spacing: 0.3px;
+}
+
+#choices button:hover {
+  background: var(--rpg-gold-dark);
+  color: #000;
+  border-color: #fff;
+}
+
+#choices button:active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+/* TELA FINAL */
+#finalScreen {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.97);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+#finalBox {
+  background: var(--rpg-panel);
+  border: 3px solid var(--rpg-gold);
+  outline: 3px solid #000;
+  box-shadow:
+    6px 6px 0 #000,
+    0 0 0 9px #000,
+    0 0 0 12px var(--rpg-gold);
+  padding: 30px 36px;
+  text-align: center;
+  color: var(--rpg-gold);
+  font-family: var(--rpg-font);
+  font-size: 13px;
+  line-height: 2.2;
+  letter-spacing: 1px;
+  max-width: 360px;
+}
+
+#finalBox .trophy {
+  font-size: 28px;
+  display: block;
+  margin-bottom: 14px;
+  animation: spin 2s ease-in-out infinite alternate;
+}
+
+@keyframes spin {
+  0% { transform: scale(1) rotate(-5deg); }
+  100% { transform: scale(1.1) rotate(5deg); }
+}
+
+#finalBox .title-line {
+  color: #fff;
+  font-size: 12px;
+  display: block;
+  margin-bottom: 16px;
+  text-shadow: 2px 2px 0 var(--rpg-gold-dark);
+}
+
+#finalBox .score-line {
+  color: var(--rpg-gold);
+  font-size: 8px;
+  margin-top: 10px;
+  display: block;
+}
+
+/* Progress dots at top */
+#progressBar {
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  z-index: 10;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.prog-dot {
+  width: 6px;
+  height: 6px;
+  background: #333;
+  border: 1px solid #555;
+  image-rendering: pixelated;
+  transition: background 0.3s;
+}
+.prog-dot.done {
+  background: var(--rpg-gold);
+  border-color: #fff;
+}
+
+/* HP / Step counter */
+#stepCounter {
+  position: absolute;
+  top: 6px;
+  left: 8px;
+  z-index: 10;
+  color: var(--rpg-gold);
+  font-family: var(--rpg-font);
+  font-size: 11px;
+  background: rgba(0,0,0,0.6);
+  padding: 3px 7px;
+  border: 1px solid var(--rpg-gold-dark);
+  letter-spacing: 1px;
+}
+
+/* === RESPONSIVO: PAISAGEM === */
+@media (max-width: 700px), (orientation: landscape) and (max-height: 500px) {
+  #game {
+    width: 100vw;
+    height: 100vh;
+    outline: none;
+    box-shadow: none;
+  }
+
+  #character {
+    bottom: 28%;
+    max-width: 11vw;
+    left: 3vw;
+  }
+
+  #nameBox {
+    bottom: 35%;
+    font-size: clamp(6px, 1.1vw, 9px);
+    left: 18%;
+    padding: 4px 8px;
+  }
+
+  #dialog {
+    height: 28%;
+    padding: 1.5% 2%;
+  }
+
+  #text {
+    font-size: clamp(11px, 1.8vw, 14px);
+    line-height: 1.8;
+  }
+
+  #skip {
+    font-size: clamp(10px, 1.4vw, 12px);
+    padding: 5px 10px;
+  }
+
+  #choices button {
+    font-size: clamp(10px, 1.4vw, 12px);
+    padding: clamp(6px, 1vh, 10px) 6px;
+  }
+
+  #stepCounter {
+    font-size: 10px;
+  }
+
+  #finalBox {
+    font-size: 12px;
+    padding: 20px 24px;
+    max-width: 80vw;
+  }
+}
+
+@media (max-width: 480px) {
+  #game {
+    width: 100vw;
+    height: 100vh;
+  }
+  #character {
+    width: 70px;
+    bottom: 29%;
+    left: 10px;
+  }
+  #nameBox {
+    font-size: 12px;
+    bottom: 36%;
+    left: 90px;
+  }
+  #dialog {
+    height: 32%;
+    padding: 12px 14px 10px 14px;
+  }
+  #text {
+    font-size: 12px;
+    line-height: 1.7;
+  }
+  #skip {
+    font-size: 11px;
+    padding: 5px 10px;
+  }
+  #choices button {
+    font-size: 11px;
+    padding: 8px 6px;
+  }
+  #stepCounter {
+    font-size: 10px;
+  }
+}
+</style>
+</head>
+<body>
+
+<div id="game">
+  <div id="stepCounter">★ CAP.1</div>
+  <div id="progressBar"></div>
+
+  <div id="bg"></div>
+  <img id="character" src="img/alencar.png" alt="character">
+  <div id="nameBox">Alencar</div>
+
+  <div id="dialog">
+    <div id="text"></div>
+    <div id="choices" class="hidden"></div>
+    <div id="skip">▶ SKIP</div>
+  </div>
 </div>
 
-</div>  <div id="finalScreen">  
-    <div id="finalBox">  
-        🎉 PARABÉNS 🎉<br><br>  
-        Você concluiu o jogo<br>  
-        e entendeu a obra<br>  
-        O Guarani!  
-    </div>  
-</div>  <script>  
-let step = 0;  
-let typing = false;  
-let fullText = "";  
-let index = 0;  
-let interval;  
-  
-let quizStep = 0;  
-let score = 0;  
-  
-const text = document.getElementById("text");  
-const nameBox = document.getElementById("nameBox");  
-const char = document.getElementById("character");  
-const choices = document.getElementById("choices");  
-const skipBtn = document.getElementById("skip");  
-const bg = document.getElementById("bg");  
-  
-// Som de escrita (vai funcionar depois de interação)  
-const typeSound = new Audio("img/type.mp3");  
-  
-bg.style.backgroundImage = "url('img/fundo_biblioteca.png')";  
-  
-function typeText(sentence){  
-    typing = true;  
-    fullText = sentence;  
-    index = 0;  
-    text.innerHTML = "";  
-  
-    interval = setInterval(()=>{  
-        if(fullText[index]==="\n"){ text.innerHTML += "<br>"; }  
-        else {   
-            text.innerHTML += fullText[index];  
-            typeSound.currentTime = 0;  
-            typeSound.play().catch(e=>{});  
-        }  
-        index++;  
-        if(index>=fullText.length){ clearInterval(interval); typing=false; }  
-    },18);  
-}  
-  
-skipBtn.onclick = function(){  
-    if(typing){  
-        clearInterval(interval);  
-        text.innerHTML = fullText.replace(/\n/g,"<br>");  
-        typing=false;  
-    } else { next(); }  
-};  
-  
-function next(){  
-    if(typing) return;  
-    if(!choices.classList.contains("hidden")) return;  
-  
-    step++;  
-    skipBtn.style.display = "block";  
-  
-    switch(step){  
-        case 1:  
-            bg.style.backgroundImage = "url('img/fundo_biblioteca.png')";  
-            nameBox.innerText = "Alencar";  
-            char.style.display="block";  
-            char.src="img/alencar.png";  
-            typeText("Olá... eu sou José de Alencar.\nSou um escritor brasileiro do século XIX.\nE vivi em um momento em que o Brasil buscava sua identidade.");  
-            break;  
-        case 2:  
-            typeText("Naquela época, muitos valorizavam apenas a Europa.\nMas eu queria mostrar que o Brasil tinha sua própria cultura,\nsua própria história e seus próprios heróis.");  
-            break;  
-        case 3:  
-            typeText("Foi assim que escrevi O Guarani.\nUma obra que valoriza a natureza, o amor e o heroísmo,\ncolocando o indígena como símbolo nacional.");  
-            break;  
-        case 4:  
-            bg.style.backgroundImage = "url('img/fundo_floresta.png')";  
-            nameBox.innerText="Peri";  
-            char.src="img/peri.png";  
-            typeText("Eu sou Peri, filho da floresta.\nMinha força vem da natureza,\ne meu espírito é livre como o vento.");  
-            break;  
-        case 5:  
-            typeText("Conheço cada caminho da mata.\nNada escapa aos meus sentidos.\nA floresta é minha casa.");  
-            break;  
-        case 6:  
-            typeText("Mas acima de tudo, sou leal.\nEu protegeria Ceci com a minha vida,\nsem medo e sem hesitar.");  
-            break;  
-        case 7:  
-            bg.style.backgroundImage = "url('img/fundo_narrador.png')";  
-            nameBox.innerText="Narrador";  
-            char.src="img/narrador.png";  
-            typeText("A história se passa no Brasil colonial.\nUm período marcado por conflitos,\nperigos e disputas constantes.");  
-            break;  
-        case 8:  
-            typeText("Ceci vive cercada de ameaças.\nE é nesse cenário que Peri se torna seu protetor,\num símbolo de coragem e lealdade.");  
-            break;  
-        case 9:  
-            typeText("No final, tudo entra em colapso.\nMas Peri salva Ceci.\nE os dois desaparecem juntos.");  
-            break;  
-        case 10:  
-            typeText("Esse final representa algo maior.\nA união de culturas e o nascimento\nde uma identidade brasileira.");  
-            break;  
-        case 11:  
-            startQuiz();  
-            break;  
-    }  
-}  
-  
-function startQuiz(){  
-    quizStep=0;  
-    score=0;  
-    nextQuestion();  
-}  
-  
-function nextQuestion(){  
-    const q=[  
-        {q:"Quem escreveu O Guarani?",a:["José de Alencar","Machado","Lobato","Drummond"],c:0},  
-        {q:"Quem é o herói?",a:["Peri","Ceci","Antônio","Loredano"],c:0},  
-        {q:"Onde se passa?",a:["Brasil colonial","Europa","África","Ásia"],c:0},  
-        {q:"Peri representa?",a:["Lealdade e força","Medo","Riqueza","Fraqueza"],c:0}  
-    ];  
-    if(quizStep>=q.length){endGame();return;}  
-  
-    let cur=q[quizStep];  
-    nameBox.innerText="Quiz";  
-    char.style.display="none";  
-    text.innerHTML=cur.q;  
-    choices.classList.remove("hidden");  
-    choices.innerHTML="";  
-    skipBtn.style.display="none";  
-  
-    cur.a.forEach((opt,i)=>{  
-        let b=document.createElement("button");  
-        b.innerText=opt;  
-        b.onclick=()=>{  
-            if(i===cur.c) score++;  
-            quizStep++;  
-            nextQuestion();  
-        };  
-        choices.appendChild(b);  
-    });  
-}  
-  
-function endGame(){  
-    document.getElementById("game").style.display="none";  
-    document.getElementById("finalScreen").style.display="flex";  
-}  
-  
-document.addEventListener("DOMContentLoaded", function(){ next(); });  
-</script>  </body>  
-</html> 
+<div id="finalScreen">
+  <div id="finalBox">
+    <span class="trophy">🏆</span>
+    <span class="title-line">PARABÉNS!</span>
+    Você concluiu<br>
+    O Guarani!<br>
+    <span class="score-line" id="scoreDisplay"></span>
+  </div>
+</div>
+
+<script>
+let step = 0;
+let typing = false;
+let fullText = "";
+let index = 0;
+let interval;
+let quizStep = 0;
+let score = 0;
+const TOTAL_STORY_STEPS = 10;
+
+const text = document.getElementById("text");
+const nameBox = document.getElementById("nameBox");
+const char = document.getElementById("character");
+const choices = document.getElementById("choices");
+const skipBtn = document.getElementById("skip");
+const bg = document.getElementById("bg");
+const dialog = document.getElementById("dialog");
+const stepCounter = document.getElementById("stepCounter");
+const progressBar = document.getElementById("progressBar");
+
+// Som de digitação via Web Audio API — criado só após interação do usuário
+let audioCtx = null;
+
+function getAudioCtx() {
+  if (!audioCtx) {
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    } catch(e) { return null; }
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function playTypeSound() {
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  try {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    // Som suave estilo RPG — onda senoidal, frequência mais alta
+    osc.type = 'sine';
+    osc.frequency.value = 520 + Math.random() * 180; // 520-700 Hz, mais suave
+    gain.gain.setValueAtTime(0.12, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.04);
+  } catch(e) {}
+}
+
+// Build progress dots
+for (let i = 0; i < TOTAL_STORY_STEPS; i++) {
+  const dot = document.createElement('div');
+  dot.className = 'prog-dot';
+  dot.id = 'dot-' + i;
+  progressBar.appendChild(dot);
+}
+
+function updateProgress() {
+  for (let i = 0; i < TOTAL_STORY_STEPS; i++) {
+    const dot = document.getElementById('dot-' + i);
+    if (dot) dot.classList.toggle('done', i < step);
+  }
+  if (step > 0 && step <= TOTAL_STORY_STEPS) {
+    stepCounter.textContent = '★ CAP.' + step;
+  }
+}
+
+function changeBg(url) {
+  bg.classList.add('changing');
+  setTimeout(() => {
+    bg.style.backgroundImage = "url('" + url + "')";
+    bg.classList.remove('changing');
+  }, 300);
+}
+
+bg.style.backgroundImage = "url('img/fundo_biblioteca.png')";
+
+function typeText(sentence) {
+  typing = true;
+  dialog.classList.remove('done');
+  fullText = sentence;
+  index = 0;
+  text.innerHTML = "";
+
+  interval = setInterval(() => {
+    if (fullText[index] === "\n") {
+      text.innerHTML += "<br>";
+    } else {
+      text.innerHTML += fullText[index];
+      playTypeSound();
+    }
+    index++;
+    if (index >= fullText.length) {
+      clearInterval(interval);
+      typing = false;
+      dialog.classList.add('done');
+    }
+  }, 20);
+}
+
+skipBtn.onclick = function () {
+  if (typing) {
+    clearInterval(interval);
+    text.innerHTML = fullText.replace(/\n/g, "<br>");
+    typing = false;
+    dialog.classList.add('done');
+  } else {
+    next();
+  }
+};
+
+function next() {
+  if (typing) return;
+  if (!choices.classList.contains("hidden")) return;
+
+  step++;
+  updateProgress();
+  skipBtn.style.display = "block";
+
+  switch (step) {
+    case 1:
+      changeBg('img/fundo_biblioteca.png');
+      nameBox.innerText = "Alencar";
+      char.style.display = "block";
+      char.src = "img/alencar.png";
+      typeText("Olá... eu sou José de Alencar.\nSou um escritor brasileiro do século XIX.\nE vivi em um momento em que o Brasil buscava sua identidade.");
+      break;
+    case 2:
+      typeText("Naquela época, muitos valorizavam apenas a Europa.\nMas eu queria mostrar que o Brasil tinha sua própria cultura,\nsua própria história e seus próprios heróis.");
+      break;
+    case 3:
+      typeText("Foi assim que escrevi O Guarani.\nUma obra que valoriza a natureza, o amor e o heroísmo,\ncolocando o indígena como símbolo nacional.");
+      break;
+    case 4:
+      changeBg('img/fundo_floresta.png');
+      nameBox.innerText = "Peri";
+      char.src = "img/peri.png";
+      typeText("Eu sou Peri, filho da floresta.\nMinha força vem da natureza,\ne meu espírito é livre como o vento.");
+      break;
+    case 5:
+      typeText("Conheço cada caminho da mata.\nNada escapa aos meus sentidos.\nA floresta é minha casa.");
+      break;
+    case 6:
+      typeText("Mas acima de tudo, sou leal.\nEu protegeria Ceci com a minha vida,\nsem medo e sem hesitar.");
+      break;
+    case 7:
+      changeBg('img/fundo_narrador.png');
+      nameBox.innerText = "Narrador";
+      char.src = "img/narrador.png";
+      typeText("A história se passa no Brasil colonial.\nUm período marcado por conflitos,\nperigos e disputas constantes.");
+      break;
+    case 8:
+      typeText("Ceci vive cercada de ameaças.\nE é nesse cenário que Peri se torna seu protetor,\num símbolo de coragem e lealdade.");
+      break;
+    case 9:
+      typeText("No final, tudo entra em colapso.\nMas Peri salva Ceci.\nE os dois desaparecem juntos.");
+      break;
+    case 10:
+      typeText("Esse final representa algo maior.\nA união de culturas e o nascimento\nde uma identidade brasileira.");
+      break;
+    case 11:
+      startQuiz();
+      break;
+  }
+}
+
+function startQuiz() {
+  quizStep = 0;
+  score = 0;
+  nextQuestion();
+}
+
+function nextQuestion() {
+  const q = [
+    { q: "Quem escreveu O Guarani?", a: ["José de Alencar", "Machado", "Lobato", "Drummond"], c: 0 },
+    { q: "Quem é o herói?", a: ["Peri", "Ceci", "Antônio", "Loredano"], c: 0 },
+    { q: "Onde se passa?", a: ["Brasil colonial", "Europa", "África", "Ásia"], c: 0 },
+    { q: "Peri representa?", a: ["Lealdade e força", "Medo", "Riqueza", "Fraqueza"], c: 0 }
+  ];
+
+  if (quizStep >= q.length) { endGame(); return; }
+
+  let cur = q[quizStep];
+  nameBox.innerText = "Quiz";
+  char.style.display = "none";
+  dialog.classList.remove('done');
+  text.innerHTML = "❓ " + cur.q;
+  choices.classList.remove("hidden");
+  choices.innerHTML = "";
+  skipBtn.style.display = "none";
+  stepCounter.textContent = "QUIZ " + (quizStep + 1) + "/" + q.length;
+
+  cur.a.forEach((opt, i) => {
+    let b = document.createElement("button");
+    b.innerText = (["A", "B", "C", "D"][i]) + ") " + opt;
+    b.onclick = () => {
+      // Flash feedback
+      if (i === cur.c) {
+        b.style.background = "#1a5c1a";
+        b.style.borderColor = "#4cff4c";
+        b.style.color = "#4cff4c";
+        score++;
+      } else {
+        b.style.background = "#5c1a1a";
+        b.style.borderColor = "#ff4c4c";
+        b.style.color = "#ff4c4c";
+        // Highlight correct
+        choices.querySelectorAll("button")[cur.c].style.background = "#1a5c1a";
+        choices.querySelectorAll("button")[cur.c].style.borderColor = "#4cff4c";
+        choices.querySelectorAll("button")[cur.c].style.color = "#4cff4c";
+      }
+      // Disable all buttons
+      choices.querySelectorAll("button").forEach(btn => btn.onclick = null);
+      setTimeout(() => {
+        quizStep++;
+        nextQuestion();
+      }, 700);
+    };
+    choices.appendChild(b);
+  });
+}
+
+function endGame() {
+  document.getElementById("game").style.display = "none";
+  const finalScreen = document.getElementById("finalScreen");
+  const scoreDisplay = document.getElementById("scoreDisplay");
+  scoreDisplay.textContent = "PONTOS: " + score + " / 4";
+  finalScreen.style.display = "flex";
+}
+
+document.addEventListener("DOMContentLoaded", function () { next(); });
+</script>
+</body>
+</html>
