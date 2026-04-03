@@ -28,37 +28,23 @@
 
 body {
   margin: 0;
+  padding: 0;
   font-family: var(--rpg-font);
-  background: #2d4a1e;
-  background-image:
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 3px,
-      rgba(0,0,0,0.08) 3px,
-      rgba(0,0,0,0.08) 4px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      transparent,
-      transparent 3px,
-      rgba(0,0,0,0.08) 3px,
-      rgba(0,0,0,0.08) 4px
-    );
+  background: #0a0a0a;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  width: 100vw;
+  height: 100dvh;
   overflow: hidden;
 }
 
 /* === CONTAINER DO JOGO === */
 #game {
-  width: 650px;
-  height: 420px;
+  width: min(650px, 100vw);
+  height: min(420px, 100dvh);
   position: relative;
   image-rendering: pixelated;
-  /* Pixel-art double border effect */
   outline: 4px solid #000;
   box-shadow:
     0 0 0 8px var(--rpg-gold),
@@ -383,7 +369,7 @@ body {
   }
   #game {
     width: 100vw;
-    height: 100dvh; /* dvh respeita barra do navegador */
+    height: 100dvh;
     outline: none;
     box-shadow: none;
   }
@@ -431,13 +417,11 @@ body {
   }
   #game {
     width: 100vw;
-    /* padding-right cobre a linha preta do celular (safe area) */
     height: 100dvh;
     outline: none;
     box-shadow: none;
-    /* Padding para safe area (entalhe/barra de navegação) */
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
     box-sizing: border-box;
   }
   #bg {
