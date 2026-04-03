@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>O Guarani RPG Responsivo</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -148,16 +148,19 @@ body {
   position: absolute;
   bottom: 0;
   width: 100%;
-  height: 28%;
+  height: 30%;
   background: var(--rpg-panel);
   border-top: 4px solid var(--rpg-gold);
   border-bottom: 4px solid #000;
   border-left: 4px solid #000;
   border-right: 4px solid #000;
   box-sizing: border-box;
-  padding: 12px 14px 10px 14px;
-  /* Inner highlight lines for depth */
+  padding: 10px 12px 8px 12px;
   box-shadow: inset 0 1px 0 rgba(248,216,112,0.15);
+  /* Flexbox: texto cresce, skip fica sempre visível embaixo */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 /* Top decorative bar on dialog */
@@ -171,16 +174,17 @@ body {
   background: #000;
 }
 
-/* Corner pixel accents */
+/* Cursor piscando no canto — só aparece quando texto termina */
 #dialog::after {
   content: '▶';
   position: absolute;
-  right: 14px;
+  right: 12px;
   bottom: 10px;
   color: var(--rpg-gold);
   font-size: 8px;
   opacity: 0;
   animation: blink 0.8s step-end infinite;
+  pointer-events: none;
 }
 #dialog.done::after { opacity: 1; }
 
@@ -193,22 +197,23 @@ body {
 #text {
   font-family: var(--rpg-font);
   font-size: 13px;
-  line-height: 1.8;
+  line-height: 1.75;
   color: var(--rpg-text);
   letter-spacing: 0.3px;
-  min-height: 48px;
+  flex: 1;
+  overflow: hidden;
 }
 
-/* BOTÃO SKIP */
+/* BOTÃO SKIP — sempre na base, nunca some */
 #skip {
-  position: absolute;
-  left: 14px;
-  bottom: 10px;
+  display: block;
+  align-self: flex-start;
+  margin-top: 6px;
   background: var(--rpg-dark);
   color: var(--rpg-gold);
   font-family: var(--rpg-font);
   font-size: 11px;
-  padding: 6px 12px;
+  padding: 6px 14px;
   cursor: pointer;
   border: 2px solid var(--rpg-gold);
   outline: 1px solid #000;
@@ -217,6 +222,10 @@ body {
   user-select: none;
   transition: transform 0.08s, box-shadow 0.08s;
   text-transform: uppercase;
+  flex-shrink: 0;
+  /* Garante área de toque generosa no mobile */
+  min-height: 36px;
+  min-width: 80px;
 }
 
 #skip:active {
@@ -367,105 +376,108 @@ body {
 }
 
 /* === RESPONSIVO: PAISAGEM === */
-@media (max-width: 700px), (orientation: landscape) and (max-height: 500px) {
+/* === PORTRAIT MOBILE (celular em pé) === */
+@media (max-width: 600px) and (orientation: portrait) {
+  body {
+    align-items: stretch;
+  }
   #game {
     width: 100vw;
-    height: 100vh;
+    height: 100dvh; /* dvh respeita barra do navegador */
     outline: none;
     box-shadow: none;
   }
-
+  #bg {
+    height: 65%;
+  }
   #character {
-    bottom: 28%;
-    max-width: 11vw;
-    left: 3vw;
-  }
-
-  #nameBox {
-    bottom: 35%;
-    font-size: clamp(6px, 1.1vw, 9px);
-    left: 18%;
-    padding: 4px 8px;
-  }
-
-  #dialog {
-    height: 28%;
-    padding: 1.5% 2%;
-  }
-
-  #text {
-    font-size: clamp(11px, 1.8vw, 14px);
-    line-height: 1.8;
-  }
-
-  #skip {
-    font-size: clamp(10px, 1.4vw, 12px);
-    padding: 5px 10px;
-  }
-
-  #choices button {
-    font-size: clamp(10px, 1.4vw, 12px);
-    padding: clamp(6px, 1vh, 10px) 6px;
-  }
-
-  #stepCounter {
-    font-size: 10px;
-  }
-
-  #finalBox {
-    font-size: 12px;
-    padding: 20px 24px;
-    max-width: 80vw;
-  }
-}
-#skip {
-  display: block;
-  position: absolute;
-  left: 10px;
-  bottom: 10px;
-  z-index: 999;
-}
-
-@media (max-width: 480px) {
-  #game {
-    width: 100vw;
-    height: 100vh;
-  }
-  #skip {
-  display: block;
-  position: absolute;
-  bottom: 10px;
-  left: 10px;
-  z-index: 999;
-}
-  #character {
-    width: 70px;
-    bottom: 29%;
+    width: 68px;
+    bottom: 31%;
     left: 10px;
   }
   #nameBox {
-    font-size: 12px;
-    bottom: 36%;
-    left: 90px;
+    font-size: 11px;
+    bottom: calc(31% + 78px);
+    left: 86px;
+    padding: 4px 8px;
   }
   #dialog {
-    height: 32%;
-    padding: 12px 14px 10px 14px;
+    height: 35%;
+    padding: 10px 12px 8px 12px;
   }
   #text {
-    font-size: 12px;
-    line-height: 1.7;
+    font-size: 11px;
+    line-height: 1.65;
   }
   #skip {
     font-size: 11px;
-    padding: 5px 10px;
+    padding: 7px 14px;
+    min-height: 38px;
+  }
+  #choices {
+    gap: 5px;
   }
   #choices button {
-    font-size: 11px;
-    padding: 8px 6px;
-  }
-  #stepCounter {
     font-size: 10px;
+    padding: 7px 5px;
+  }
+  #stepCounter { font-size: 9px; }
+}
+
+/* === LANDSCAPE MOBILE (celular deitado) === */
+@media (orientation: landscape) and (max-height: 500px) {
+  body {
+    align-items: stretch;
+  }
+  #game {
+    width: 100vw;
+    /* padding-right cobre a linha preta do celular (safe area) */
+    height: 100dvh;
+    outline: none;
+    box-shadow: none;
+    /* Padding para safe area (entalhe/barra de navegação) */
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    box-sizing: border-box;
+  }
+  #bg {
+    height: 68%;
+    /* Compensar o padding do #game */
+    width: 100%;
+  }
+  #character {
+    bottom: 30%;
+    max-width: 10vw;
+    left: max(3vw, env(safe-area-inset-left, 0px) + 10px);
+  }
+  #nameBox {
+    bottom: 37%;
+    font-size: clamp(8px, 1.3vw, 11px);
+    left: max(17%, calc(env(safe-area-inset-left, 0px) + 13vw));
+    padding: 3px 7px;
+  }
+  #dialog {
+    height: 32%;
+    padding: 6px 12px 6px 12px;
+  }
+  #text {
+    font-size: clamp(9px, 1.5vw, 12px);
+    line-height: 1.6;
+  }
+  #skip {
+    font-size: clamp(9px, 1.3vw, 11px);
+    padding: 5px 10px;
+    min-height: 32px;
+  }
+  #choices button {
+    font-size: clamp(8px, 1.2vw, 11px);
+    padding: clamp(4px, 0.8vh, 8px) 5px;
+  }
+  #stepCounter { font-size: 9px; }
+  #finalBox {
+    font-size: 10px;
+    padding: 16px 20px;
+    max-width: 70vw;
   }
 }
 </style>
