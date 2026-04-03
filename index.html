@@ -1,0 +1,318 @@
+<!DOCTYPE html>  <html lang="pt-br">  
+<head>  
+<meta charset="UTF-8">  
+<title>O Guarani RPG Responsivo</title>  <style>  
+.hidden { display: none; }  
+  
+body {  
+    margin: 0;  
+    font-family: monospace;  
+    background: #6cab4f; /* fundo verde */  
+    display: flex;  
+    justify-content: center;  
+    align-items: center;  
+    height: 100vh;  
+}  
+  
+/* === CONTAINER DO JOGO === */  
+#game {  
+    width: 650px;  
+    height: 420px;  
+    position: relative;  
+}  
+  
+/* FUNDO */  
+#bg {  
+    position: absolute;  
+    top: 0;  
+    width: 100%;  
+    height: 72%;  
+    background-size: cover;  
+    background-position: center;  
+    border-top: 5px solid #000; /* preto claro topo */  
+    border-left: 5px solid #000;   
+    border-right: 5px solid #000;  
+    box-sizing: border-box;  
+}  
+  
+/* PERSONAGEM */  
+#character {  
+    position: absolute;  
+    bottom: 90px;  
+    left: 30px;  
+    width: 70px;  
+    image-rendering: pixelated;  
+    z-index: 3;  
+}  
+  
+/* NOME DO PERSONAGEM */  
+#nameBox {  
+    position: absolute;  
+    bottom: 150px;  
+    left: 110px;  
+    background: white;  
+    border: 3px solid #000; /* borda preta */  
+    padding: 4px 10px;  
+    font-size: 13px;  
+    z-index: 4;  
+}  
+  
+/* CAIXA DE TEXTO */  
+#dialog {  
+    position: absolute;  
+    bottom: 0;  
+    width: 100%;  
+    height: 28%;  
+    background: #ddd;  
+    border-bottom: 5px solid #000; /* borda preta fundo */  
+    border-left: 5px solid #000;  
+    border-right: 5px solid #000;  
+    box-sizing: border-box;  
+    padding: 15px;  
+}  
+  
+/* TEXTO */  
+#text {  
+    font-size: 14px;  
+    line-height: 1.6;  
+}  
+  
+/* BOTÃO SKIP */  
+#skip {  
+    position: absolute;  
+    left: 12px;  
+    bottom: 10px;  
+    background: black;  
+    color: white;  
+    padding: 5px 14px;  
+    font-size: 11px;  
+    cursor: pointer;  
+}  
+  
+/* QUIZ */  
+#choices {  
+    margin-top: 10px;  
+    display: grid;  
+    grid-template-columns: 1fr 1fr;  
+    gap: 8px;  
+}  
+  
+#choices button {  
+    padding: 10px;  
+    border: 2px solid black;  
+    background: white;  
+    font-size: 12px;  
+}  
+  
+/* TELA FINAL */  
+#finalScreen {  
+    position: fixed;  
+    width: 100%;  
+    height: 100%;  
+    background: black;  
+    display: none;  
+    justify-content: center;  
+    align-items: center;  
+}  
+  
+#finalBox {  
+    background: #222;  
+    border: 6px solid #00ffcc;  
+    padding: 30px;  
+    text-align: center;  
+    color: #00ffcc;  
+    font-size: 18px;  
+}  
+  
+/* === RESPONSIVO: PAISAGEM === */  
+@media (orientation: landscape) {  
+    #game {  
+        width: 100vw;  
+        height: 100vh;  
+    }  
+    #character {  
+        bottom: 28%; /* alinhado com o topo da caixa de diálogo */  
+        max-width: 12vw;  
+    }  
+    #nameBox {  
+        bottom: 35%;  
+        font-size: 1.2vw;  
+        left: 20%;  
+    }  
+    #dialog {  
+        height: 28%;  
+        padding: 2%;  
+    }  
+    #text {  
+        font-size: 1.2vw;  
+    }  
+    #skip {  
+        font-size: 1vw;  
+        padding: 0.5vw 1.5vw;  
+    }  
+    #choices button {  
+        font-size: 1vw;  
+        padding: 1vh 0;  
+    }  
+}  
+</style>  </head>  <body>  <div id="game">  
+    <div id="bg"></div>  
+    <img id="character" src="img/alencar.png">  
+    <div id="nameBox">Alencar</div>  <div id="dialog">  
+    <div id="text"></div>  
+    <div id="choices" class="hidden"></div>  
+    <div id="skip">SKIP</div>  
+</div>
+
+</div>  <div id="finalScreen">  
+    <div id="finalBox">  
+        🎉 PARABÉNS 🎉<br><br>  
+        Você concluiu o jogo<br>  
+        e entendeu a obra<br>  
+        O Guarani!  
+    </div>  
+</div>  <script>  
+let step = 0;  
+let typing = false;  
+let fullText = "";  
+let index = 0;  
+let interval;  
+  
+let quizStep = 0;  
+let score = 0;  
+  
+const text = document.getElementById("text");  
+const nameBox = document.getElementById("nameBox");  
+const char = document.getElementById("character");  
+const choices = document.getElementById("choices");  
+const skipBtn = document.getElementById("skip");  
+const bg = document.getElementById("bg");  
+  
+// Som de escrita (vai funcionar depois de interação)  
+const typeSound = new Audio("img/type.mp3");  
+  
+bg.style.backgroundImage = "url('img/fundo_biblioteca.png')";  
+  
+function typeText(sentence){  
+    typing = true;  
+    fullText = sentence;  
+    index = 0;  
+    text.innerHTML = "";  
+  
+    interval = setInterval(()=>{  
+        if(fullText[index]==="\n"){ text.innerHTML += "<br>"; }  
+        else {   
+            text.innerHTML += fullText[index];  
+            typeSound.currentTime = 0;  
+            typeSound.play().catch(e=>{});  
+        }  
+        index++;  
+        if(index>=fullText.length){ clearInterval(interval); typing=false; }  
+    },18);  
+}  
+  
+skipBtn.onclick = function(){  
+    if(typing){  
+        clearInterval(interval);  
+        text.innerHTML = fullText.replace(/\n/g,"<br>");  
+        typing=false;  
+    } else { next(); }  
+};  
+  
+function next(){  
+    if(typing) return;  
+    if(!choices.classList.contains("hidden")) return;  
+  
+    step++;  
+    skipBtn.style.display = "block";  
+  
+    switch(step){  
+        case 1:  
+            bg.style.backgroundImage = "url('img/fundo_biblioteca.png')";  
+            nameBox.innerText = "Alencar";  
+            char.style.display="block";  
+            char.src="img/alencar.png";  
+            typeText("Olá... eu sou José de Alencar.\nSou um escritor brasileiro do século XIX.\nE vivi em um momento em que o Brasil buscava sua identidade.");  
+            break;  
+        case 2:  
+            typeText("Naquela época, muitos valorizavam apenas a Europa.\nMas eu queria mostrar que o Brasil tinha sua própria cultura,\nsua própria história e seus próprios heróis.");  
+            break;  
+        case 3:  
+            typeText("Foi assim que escrevi O Guarani.\nUma obra que valoriza a natureza, o amor e o heroísmo,\ncolocando o indígena como símbolo nacional.");  
+            break;  
+        case 4:  
+            bg.style.backgroundImage = "url('img/fundo_floresta.png')";  
+            nameBox.innerText="Peri";  
+            char.src="img/peri.png";  
+            typeText("Eu sou Peri, filho da floresta.\nMinha força vem da natureza,\ne meu espírito é livre como o vento.");  
+            break;  
+        case 5:  
+            typeText("Conheço cada caminho da mata.\nNada escapa aos meus sentidos.\nA floresta é minha casa.");  
+            break;  
+        case 6:  
+            typeText("Mas acima de tudo, sou leal.\nEu protegeria Ceci com a minha vida,\nsem medo e sem hesitar.");  
+            break;  
+        case 7:  
+            bg.style.backgroundImage = "url('img/fundo_narrador.png')";  
+            nameBox.innerText="Narrador";  
+            char.src="img/narrador.png";  
+            typeText("A história se passa no Brasil colonial.\nUm período marcado por conflitos,\nperigos e disputas constantes.");  
+            break;  
+        case 8:  
+            typeText("Ceci vive cercada de ameaças.\nE é nesse cenário que Peri se torna seu protetor,\num símbolo de coragem e lealdade.");  
+            break;  
+        case 9:  
+            typeText("No final, tudo entra em colapso.\nMas Peri salva Ceci.\nE os dois desaparecem juntos.");  
+            break;  
+        case 10:  
+            typeText("Esse final representa algo maior.\nA união de culturas e o nascimento\nde uma identidade brasileira.");  
+            break;  
+        case 11:  
+            startQuiz();  
+            break;  
+    }  
+}  
+  
+function startQuiz(){  
+    quizStep=0;  
+    score=0;  
+    nextQuestion();  
+}  
+  
+function nextQuestion(){  
+    const q=[  
+        {q:"Quem escreveu O Guarani?",a:["José de Alencar","Machado","Lobato","Drummond"],c:0},  
+        {q:"Quem é o herói?",a:["Peri","Ceci","Antônio","Loredano"],c:0},  
+        {q:"Onde se passa?",a:["Brasil colonial","Europa","África","Ásia"],c:0},  
+        {q:"Peri representa?",a:["Lealdade e força","Medo","Riqueza","Fraqueza"],c:0}  
+    ];  
+    if(quizStep>=q.length){endGame();return;}  
+  
+    let cur=q[quizStep];  
+    nameBox.innerText="Quiz";  
+    char.style.display="none";  
+    text.innerHTML=cur.q;  
+    choices.classList.remove("hidden");  
+    choices.innerHTML="";  
+    skipBtn.style.display="none";  
+  
+    cur.a.forEach((opt,i)=>{  
+        let b=document.createElement("button");  
+        b.innerText=opt;  
+        b.onclick=()=>{  
+            if(i===cur.c) score++;  
+            quizStep++;  
+            nextQuestion();  
+        };  
+        choices.appendChild(b);  
+    });  
+}  
+  
+function endGame(){  
+    document.getElementById("game").style.display="none";  
+    document.getElementById("finalScreen").style.display="flex";  
+}  
+  
+document.addEventListener("DOMContentLoaded", function(){ next(); });  
+</script>  </body>  
+</html> 
