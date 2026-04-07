@@ -327,15 +327,15 @@ body {
 }
 
 .prog-dot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   background: #333;
   border: 1px solid #555;
   image-rendering: pixelated;
   transition: background 0.3s;
 }
 .prog-dot.done {
-  background: var(--rpg-gold);
+  background: var(--dot-cor, var(--rpg-gold));
   border-color: #fff;
 }
 
@@ -468,19 +468,165 @@ body {
     <span class="title-line">PARABÉNS!</span>
     Você concluiu<br>
     O Guarani!<br>
+    Quiz: acertou quantas?<br>
     <span class="score-line" id="scoreDisplay"></span>
   </div>
 </div>
 
 <script>
-let step = 0;
+// ═══════════════════════════════════════════════
+// ROTEIRO COMPLETO — array de cenas
+// Cada cena: { nome, img, char, texto }
+// ═══════════════════════════════════════════════
+const cenas = [
+
+  // ── ALENCAR ──────────────────────────────────
+  {
+    nome: "Alencar", bg: "img/fundo_biblioteca.png", char: "img/alencar.png",
+    texto: "Olá, viajante... Eu sou José de Alencar.\nNasci no Ceará em 1829 e me tornei\num dos maiores escritores do Romantismo brasileiro."
+  },
+  {
+    nome: "Alencar", bg: null, char: null,
+    texto: "Fui advogado, jornalista e político.\nMas foi pela literatura que deixei\nminha marca mais profunda na história do Brasil."
+  },
+  {
+    nome: "Alencar", bg: null, char: null,
+    texto: "No século XIX, o Brasil acabara de se tornar\nindependente de Portugal. Havia uma grande\nnecessidade de construir uma identidade nacional."
+  },
+  {
+    nome: "Alencar", bg: null, char: null,
+    texto: "Muitos intelectuais olhavam apenas para a Europa\ncomo modelo de civilização e cultura.\nEu discordava profundamente disso."
+  },
+  {
+    nome: "Alencar", bg: null, char: null,
+    texto: "O Brasil tinha sua própria riqueza:\na natureza exuberante, os povos indígenas,\nos costumes únicos que surgiram nestas terras."
+  },
+  {
+    nome: "Alencar", bg: null, char: null,
+    texto: "Por isso escrevi O Guarani, publicado em 1857.\nPrimeiro como folhetim no Correio Mercantil,\ndepois como livro que conquistou o país."
+  },
+  {
+    nome: "Alencar", bg: null, char: null,
+    texto: "Minha obra coloca o indígena como herói nacional.\nPeri não é um selvagem — ele é nobre,\ncorajoso, leal e profundamente humano."
+  },
+  {
+    nome: "Alencar", bg: null, char: null,
+    texto: "O amor entre Peri e Cecília simboliza\na mistura de culturas que formou o povo brasileiro.\nIsso é o que nos torna únicos no mundo."
+  },
+  {
+    nome: "Alencar", bg: null, char: null,
+    texto: "O Guarani faz parte da minha trilogia indianista,\njunto com Iracema e Ubirajara.\nTodas exaltam a alma da terra brasileira."
+  },
+  {
+    nome: "Alencar", bg: null, char: null,
+    texto: "Espero que ao conhecer Peri e Ceci,\nvocê entenda melhor quem somos nós,\nbrasileirs — filhos desta terra extraordinária."
+  },
+
+  // ── PERI ─────────────────────────────────────
+  {
+    nome: "Peri", bg: "img/fundo_floresta.png", char: "img/peri.png",
+    texto: "Eu sou Peri, guerreiro da nação Goitacá.\nNasci livre entre as árvores e os rios.\nA floresta me ensinou tudo o que sei."
+  },
+  {
+    nome: "Peri", bg: null, char: null,
+    texto: "Minha força não vem apenas dos músculos.\nVem do conhecimento da natureza,\nda paciência do caçador e da coragem do guerreiro."
+  },
+  {
+    nome: "Peri", bg: null, char: null,
+    texto: "Conheço cada trilha, cada rio, cada planta.\nSei quais folhas curam e quais matam.\nA mata não tem segredos para mim."
+  },
+  {
+    nome: "Peri", bg: null, char: null,
+    texto: "Foi numa dessas jornadas pela floresta\nque encontrei Cecília, filha do fidalgo português\nDom Antônio de Mariz."
+  },
+  {
+    nome: "Peri", bg: null, char: null,
+    texto: "Ceci, como eu a chamo com carinho,\ntem a pureza de um anjo e a delicadeza\nde uma flor rara da mata virgem."
+  },
+  {
+    nome: "Peri", bg: null, char: null,
+    texto: "Dediquei minha vida a protegê-la.\nAbri mão de minha liberdade, de minha tribo,\nde tudo — por ela."
+  },
+  {
+    nome: "Peri", bg: null, char: null,
+    texto: "Muitos não entendiam esse amor.\nUm índio e uma portuguesa...\nMas o coração não conhece fronteiras."
+  },
+  {
+    nome: "Peri", bg: null, char: null,
+    texto: "Enfrentei os Aimorés, tribo feroz\nque aterrorizava toda a região.\nEnfrentei traidores dentro do próprio castelo."
+  },
+  {
+    nome: "Peri", bg: null, char: null,
+    texto: "Loredano, o vilão disfarçado de frei,\nplanejou destruir tudo.\nMas enquanto eu respirar, Ceci estará segura."
+  },
+  {
+    nome: "Peri", bg: null, char: null,
+    texto: "No fim, quando o castelo foi destruído,\nsalvei Ceci numa canoa,\nlevando-a para um novo começo."
+  },
+
+  // ── NARRADOR ─────────────────────────────────
+  {
+    nome: "Narrador", bg: "img/fundo_narrador.png", char: "img/narrador.png",
+    texto: "A história de O Guarani se passa em 1604,\nno período colonial brasileiro,\nàs margens do Rio Paquequer, no Rio de Janeiro."
+  },
+  {
+    nome: "Narrador", bg: null, char: null,
+    texto: "Dom Antônio de Mariz era um fidalgo português\nhonrado e respeitado, que construiu um castelo\nno meio da floresta brasileira."
+  },
+  {
+    nome: "Narrador", bg: null, char: null,
+    texto: "Sua família vivia ali em relativa paz,\nmas rodeada de perigos:\nindígenas hostis, aventureiros ambiciosos\ne a selva imprevisível."
+  },
+  {
+    nome: "Narrador", bg: null, char: null,
+    texto: "Cecília era a filha mais querida de Dom Antônio.\nDócil, bondosa e bela,\nela representava a pureza e a inocência."
+  },
+  {
+    nome: "Narrador", bg: null, char: null,
+    texto: "Peri surge nesse cenário como um raio de luz.\nEle se torna o guardião fiel de Ceci,\nnuma devoção que ultrapassa qualquer fronteira cultural."
+  },
+  {
+    nome: "Narrador", bg: null, char: null,
+    texto: "O romance explora temas profundos:\namor impossível entre culturas diferentes,\nlealdade, sacrifício e identidade nacional."
+  },
+  {
+    nome: "Narrador", bg: null, char: null,
+    texto: "Alencar usa a natureza como personagem.\nA floresta não é apenas cenário —\né viva, é ameaça, é refúgio, é identidade."
+  },
+  {
+    nome: "Narrador", bg: null, char: null,
+    texto: "O vilão Loredano representa a corrupção\ne a ambição que destroem a harmonia.\nEle planeja roubar o tesouro de Dom Antônio."
+  },
+  {
+    nome: "Narrador", bg: null, char: null,
+    texto: "No clímax, Dom Antônio decide destruir\no próprio castelo com pólvora\npara não entregar nada aos inimigos."
+  },
+  {
+    nome: "Narrador", bg: null, char: null,
+    texto: "Peri escapa com Ceci numa canoa pelo rio.\nA cena final é poética e simbólica:\ndois mundos diferentes, unidos para sempre."
+  },
+  {
+    nome: "Narrador", bg: null, char: null,
+    texto: "O final representa o nascimento\nde uma nova nação, miscigenada e única.\nÉ a origem mítica do povo brasileiro."
+  },
+  {
+    nome: "Narrador", bg: null, char: null,
+    texto: "O Guarani é considerado o romance\nfundador da literatura nacional brasileira.\nSua influência chega até os dias de hoje."
+  }
+];
+
+// ═══════════════════════════════════════════════
+// ESTADO DO JOGO
+// ═══════════════════════════════════════════════
+let cenaAtual = 0;
 let typing = false;
 let fullText = "";
 let index = 0;
 let interval;
 let quizStep = 0;
 let score = 0;
-const TOTAL_STORY_STEPS = 10;
+
+const TOTAL_CENAS = cenas.length;
 
 const text = document.getElementById("text");
 const nameBox = document.getElementById("nameBox");
@@ -492,14 +638,13 @@ const dialog = document.getElementById("dialog");
 const stepCounter = document.getElementById("stepCounter");
 const progressBar = document.getElementById("progressBar");
 
-// Som de digitação via Web Audio API — criado só após interação do usuário
+// ── SOM ──────────────────────────────────────
 let audioCtx = null;
 
 function getAudioCtx() {
   if (!audioCtx) {
-    try {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    } catch(e) { return null; }
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+    catch(e) { return null; }
   }
   if (audioCtx.state === 'suspended') audioCtx.resume();
   return audioCtx;
@@ -513,9 +658,8 @@ function playTypeSound() {
     const gain = ctx.createGain();
     osc.connect(gain);
     gain.connect(ctx.destination);
-    // Som suave estilo RPG — onda senoidal, frequência mais alta
     osc.type = 'sine';
-    osc.frequency.value = 520 + Math.random() * 180; // 520-700 Hz, mais suave
+    osc.frequency.value = 520 + Math.random() * 180;
     gain.gain.setValueAtTime(0.12, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
     osc.start(ctx.currentTime);
@@ -523,24 +667,50 @@ function playTypeSound() {
   } catch(e) {}
 }
 
-// Build progress dots
-for (let i = 0; i < TOTAL_STORY_STEPS; i++) {
-  const dot = document.createElement('div');
-  dot.className = 'prog-dot';
-  dot.id = 'dot-' + i;
-  progressBar.appendChild(dot);
-}
+// ── PROGRESS BAR ─────────────────────────────
+// 3 segmentos: Alencar (10), Peri (10), Narrador (12)
+const segmentos = [
+  { label: "Alencar", cor: "#f8d870", total: 10 },
+  { label: "Peri",    cor: "#7adf7a", total: 10 },
+  { label: "Narrador",cor: "#7ab8f5", total: 12 }
+];
+
+(function buildProgress() {
+  progressBar.innerHTML = "";
+  let idx = 0;
+  segmentos.forEach(seg => {
+    for (let i = 0; i < seg.total; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'prog-dot';
+      dot.id = 'dot-' + idx;
+      dot.style.setProperty('--dot-cor', seg.cor);
+      progressBar.appendChild(dot);
+      idx++;
+    }
+  });
+})();
 
 function updateProgress() {
-  for (let i = 0; i < TOTAL_STORY_STEPS; i++) {
+  for (let i = 0; i < TOTAL_CENAS; i++) {
     const dot = document.getElementById('dot-' + i);
-    if (dot) dot.classList.toggle('done', i < step);
+    if (!dot) continue;
+    if (i < cenaAtual) {
+      dot.classList.add('done');
+    } else {
+      dot.classList.remove('done');
+    }
   }
-  if (step > 0 && step <= TOTAL_STORY_STEPS) {
-    stepCounter.textContent = '★ CAP.' + step;
+  // Label do capítulo
+  if (cenaAtual < 10) {
+    stepCounter.textContent = "ALENCAR " + (cenaAtual + 1) + "/10";
+  } else if (cenaAtual < 20) {
+    stepCounter.textContent = "PERI " + (cenaAtual - 9) + "/10";
+  } else {
+    stepCounter.textContent = "NARRADOR " + (cenaAtual - 19) + "/12";
   }
 }
 
+// ── TROCA DE FUNDO ───────────────────────────
 function changeBg(url) {
   bg.classList.add('changing');
   setTimeout(() => {
@@ -549,8 +719,7 @@ function changeBg(url) {
   }, 300);
 }
 
-bg.style.backgroundImage = "url('img/fundo_biblioteca.png')";
-
+// ── DIGITAÇÃO ────────────────────────────────
 function typeText(sentence) {
   typing = true;
   dialog.classList.remove('done');
@@ -571,9 +740,10 @@ function typeText(sentence) {
       typing = false;
       dialog.classList.add('done');
     }
-  }, 20);
+  }, 22);
 }
 
+// ── SKIP ─────────────────────────────────────
 skipBtn.onclick = function () {
   if (typing) {
     clearInterval(interval);
@@ -585,126 +755,28 @@ skipBtn.onclick = function () {
   }
 };
 
+// ── AVANÇAR CENA ─────────────────────────────
 function next() {
   if (typing) return;
   if (!choices.classList.contains("hidden")) return;
 
-  step++;
+  if (cenaAtual >= TOTAL_CENAS) {
+    startQuiz();
+    return;
+  }
+
+  const cena = cenas[cenaAtual];
+
+  // Troca de fundo só quando indicado
+  if (cena.bg) changeBg(cena.bg);
+
+  // Troca de personagem só quando indicado
+  if (cena.char) {
+    char.style.display = "block";
+    char.src = cena.char;
+  }
+
+  nameBox.innerText = cena.nome;
   updateProgress();
   skipBtn.style.display = "block";
-
-  switch (step) {
-    case 1:
-      changeBg('img/fundo_biblioteca.png');
-      nameBox.innerText = "Alencar";
-      char.style.display = "block";
-      char.src = "img/alencar.png";
-      typeText("Olá... eu sou José de Alencar.\nSou um escritor brasileiro do século XIX.\nE vivi em um momento em que o Brasil buscava sua identidade.");
-      break;
-    case 2:
-      typeText("Naquela época, muitos valorizavam apenas a Europa.\nMas eu queria mostrar que o Brasil tinha sua própria cultura,\nsua própria história e seus próprios heróis.");
-      break;
-    case 3:
-      typeText("Foi assim que escrevi O Guarani.\nUma obra que valoriza a natureza, o amor e o heroísmo,\ncolocando o indígena como símbolo nacional.");
-      break;
-    case 4:
-      changeBg('img/fundo_floresta.png');
-      nameBox.innerText = "Peri";
-      char.src = "img/peri.png";
-      typeText("Eu sou Peri, filho da floresta.\nMinha força vem da natureza,\ne meu espírito é livre como o vento.");
-      break;
-    case 5:
-      typeText("Conheço cada caminho da mata.\nNada escapa aos meus sentidos.\nA floresta é minha casa.");
-      break;
-    case 6:
-      typeText("Mas acima de tudo, sou leal.\nEu protegeria Ceci com a minha vida,\nsem medo e sem hesitar.");
-      break;
-    case 7:
-      changeBg('img/fundo_narrador.png');
-      nameBox.innerText = "Narrador";
-      char.src = "img/narrador.png";
-      typeText("A história se passa no Brasil colonial.\nUm período marcado por conflitos,\nperigos e disputas constantes.");
-      break;
-    case 8:
-      typeText("Ceci vive cercada de ameaças.\nE é nesse cenário que Peri se torna seu protetor,\num símbolo de coragem e lealdade.");
-      break;
-    case 9:
-      typeText("No final, tudo entra em colapso.\nMas Peri salva Ceci.\nE os dois desaparecem juntos.");
-      break;
-    case 10:
-      typeText("Esse final representa algo maior.\nA união de culturas e o nascimento\nde uma identidade brasileira.");
-      break;
-    case 11:
-      startQuiz();
-      break;
-  }
-}
-
-function startQuiz() {
-  quizStep = 0;
-  score = 0;
-  nextQuestion();
-}
-
-function nextQuestion() {
-  const q = [
-    { q: "Quem escreveu O Guarani?", a: ["José de Alencar", "Machado", "Lobato", "Drummond"], c: 0 },
-    { q: "Quem é o herói?", a: ["Peri", "Ceci", "Antônio", "Loredano"], c: 0 },
-    { q: "Onde se passa?", a: ["Brasil colonial", "Europa", "África", "Ásia"], c: 0 },
-    { q: "Peri representa?", a: ["Lealdade e força", "Medo", "Riqueza", "Fraqueza"], c: 0 }
-  ];
-
-  if (quizStep >= q.length) { endGame(); return; }
-
-  let cur = q[quizStep];
-  nameBox.innerText = "Quiz";
-  char.style.display = "none";
-  dialog.classList.remove('done');
-  text.innerHTML = "❓ " + cur.q;
-  choices.classList.remove("hidden");
-  choices.innerHTML = "";
-  skipBtn.style.display = "none";
-  stepCounter.textContent = "QUIZ " + (quizStep + 1) + "/" + q.length;
-
-  cur.a.forEach((opt, i) => {
-    let b = document.createElement("button");
-    b.innerText = (["A", "B", "C", "D"][i]) + ") " + opt;
-    b.onclick = () => {
-      // Flash feedback
-      if (i === cur.c) {
-        b.style.background = "#1a5c1a";
-        b.style.borderColor = "#4cff4c";
-        b.style.color = "#4cff4c";
-        score++;
-      } else {
-        b.style.background = "#5c1a1a";
-        b.style.borderColor = "#ff4c4c";
-        b.style.color = "#ff4c4c";
-        // Highlight correct
-        choices.querySelectorAll("button")[cur.c].style.background = "#1a5c1a";
-        choices.querySelectorAll("button")[cur.c].style.borderColor = "#4cff4c";
-        choices.querySelectorAll("button")[cur.c].style.color = "#4cff4c";
-      }
-      // Disable all buttons
-      choices.querySelectorAll("button").forEach(btn => btn.onclick = null);
-      setTimeout(() => {
-        quizStep++;
-        nextQuestion();
-      }, 700);
-    };
-    choices.appendChild(b);
-  });
-}
-
-function endGame() {
-  document.getElementById("game").style.display = "none";
-  const finalScreen = document.getElementById("finalScreen");
-  const scoreDisplay = document.getElementById("scoreDisplay");
-  scoreDisplay.textContent = "PONTOS: " + score + " / 4";
-  finalScreen.style.display = "flex";
-}
-
-document.addEventListener("DOMContentLoaded", function () { next(); });
-</script>
-</body>
-</html>
+  choices.c
