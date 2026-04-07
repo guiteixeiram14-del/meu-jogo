@@ -597,4 +597,181 @@ function updateProgress() {
   if (cenaAtual < 10) {
     stepCounter.textContent = "ALENCAR " + (cenaAtual + 1) + "/10";
   } else if (cenaAtual < 20) {
-    stepCounter.textContent = "PERI " + (cenaAtual - 9) +
+    stepCounter.textContent = "PERI " + (cenaAtual - 9) + "/10";
+  } else {
+    stepCounter.textContent = "NARRADOR " + (cenaAtual - 19) + "/12";
+  }
+}
+
+// ── TROCA DE FUNDO ───────────────────────────
+function changeBg(url) {
+  bgEl.classList.add('changing');
+  setTimeout(() => {
+    bgEl.style.backgroundImage = "url('" + url + "')";
+    bgEl.classList.remove('changing');
+  }, 300);
+}
+
+// ── DIGITAÇÃO ────────────────────────────────
+function typeText(sentence) {
+  typing = true;
+  dialog.classList.remove('done');
+  fullText = sentence;
+  index = 0;
+  textEl.innerHTML = "";
+
+  interval = setInterval(() => {
+    if (fullText[index] === "\n") {
+      textEl.innerHTML += "<br>";
+    } else {
+      textEl.innerHTML += fullText[index];
+      playTypeSound();
+    }
+    index++;
+    if (index >= fullText.length) {
+      clearInterval(interval);
+      typing = false;
+      dialog.classList.add('done');
+    }
+  }, 22);
+}
+
+// ── SKIP ─────────────────────────────────────
+skipBtn.onclick = function () {
+  if (inQuiz) return;
+  if (typing) {
+    clearInterval(interval);
+    textEl.innerHTML = fullText.replace(/\n/g, "<br>");
+    typing = false;
+    dialog.classList.add('done');
+  } else {
+    next();
+  }
+};
+
+// ── AVANÇAR CENA ─────────────────────────────
+function next() {
+  if (typing || inQuiz) return;
+  if (!choices.classList.contains("hidden")) return;
+
+  if (cenaAtual >= TOTAL_CENAS) {
+    startQuiz();
+    return;
+  }
+
+  const cena = cenas[cenaAtual];
+
+  if (cena.bg) changeBg(cena.bg);
+
+  if (cena.char) {
+    charEl.style.display = "block";
+    charEl.src = cena.char;
+  }
+
+  nameBox.innerText = cena.nome;
+  updateProgress();
+  skipBtn.style.display = "block";
+  choices.classList.add("hidden");
+  choices.innerHTML = "";
+
+  typeText(cena.texto);
+  cenaAtual++;
+}
+
+// ── QUIZ ─────────────────────────────────────
+function startQuiz() {
+  inQuiz = true;
+  quizStep = 0;
+  score = 0;
+  skipBtn.style.display = "none";
+  nameBox.innerText = "QUIZ";
+  charEl.style.display = "none";
+  stepCounter.textContent = "QUIZ";
+  showQuizQuestion();
+}
+
+function showQuizQuestion() {
+  if (quizStep >= quiz.length) {
+    endGame();
+    return;
+  }
+
+  const q = quiz[quizStep];
+  textEl.innerHTML = "<b>" + (quizStep + 1) + "/" + quiz.length + "</b> — " + q.pergunta;
+  dialog.classList.remove('done');
+
+  choices.classList.remove("hidden");
+  choices.innerHTML = "";
+
+  q.opcoes.forEach((op, i) => {
+    const btn = document.createElement("button");
+    btn.textContent = op;
+    btn.onclick = () => handleAnswer(i);
+    choices.appendChild(btn);
+  });
+}
+
+function handleAnswer(chosen) {
+  const q = quiz[quizStep];
+  const correct = chosen === q.certa;
+
+  // Desabilita botões imediatamente
+  Array.from(choices.children).forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === q.certa) btn.style.background = "#2a5a2a";
+    else if (i === chosen && !correct) btn.style.background = "#5a1a1a";
+  });
+
+  if (correct) {
+    score++;
+    playCorrect();
+    showFeedback("✓ " + q.explicacao, true);
+  } else {
+    playWrong();
+    showFeedback("✗ Errado! " + q.explicacao, false);
+  }
+}
+
+function showFeedback(msg, ok) {
+  feedbackEl.style.display = "block";
+  feedbackEl.style.borderColor = ok ? "#7adf7a" : "#df5a5a";
+  feedbackEl.style.color = ok ? "#7adf7a" : "#df7a7a";
+  feedbackEl.innerHTML = msg;
+
+  setTimeout(() => {
+    feedbackEl.style.display = "none";
+    quizStep++;
+    showQuizQuestion();
+  }, 1800);
+}
+
+function endGame() {
+  inQuiz = false;
+  finalScreen.style.display = "flex";
+  const pct = Math.round((score / quiz.length) * 100);
+  scoreDisplay.textContent = score + " de " + quiz.length + " corretas (" + pct + "%)";
+}
+
+// ── RESTART ──────────────────────────────────
+restartBtn.onclick = function () {
+  cenaAtual = 0;
+  quizStep = 0;
+  score = 0;
+  inQuiz = false;
+  typing = false;
+  clearInterval(interval);
+  finalScreen.style.display = "none";
+  choices.classList.add("hidden");
+  choices.innerHTML = "";
+  skipBtn.style.display = "block";
+  charEl.style.display = "block";
+  textEl.innerHTML = "";
+  updateProgress();
+  next();
+};
+
+// ── INICIAR ──────────────────────────────────
+next();
+</script>
+</body>
+</html>
