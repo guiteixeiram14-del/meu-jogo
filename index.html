@@ -6,7 +6,7 @@
 <title>O Guarani RPG</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { width: 100%; height: 100%; }
+html, body { width: 100%; height: 100%; overflow: hidden; }
 
 :root {
   --rpg-font: 'Courier New', 'Lucida Console', monospace;
@@ -15,115 +15,160 @@ html, body { width: 100%; height: 100%; }
   --rpg-dark: #0a0a0a;
   --rpg-panel: #1a1a2e;
   --rpg-panel-light: #16213e;
-  --rpg-border: #f8d870;
   --rpg-text: #f0e6c8;
-  --rpg-green-bg: #3a7a2a;
-  --rpg-white: #f0e6c8;
-  --rpg-shadow: #000;
+  --dialog-h: 28vh;
 }
 
-body {
-  margin: 0; padding: 0;
-  font-family: var(--rpg-font);
-  background: #0a0a0a;
-  overflow: hidden;
-}
+body { font-family: var(--rpg-font); background: #000; }
 
+/* ── WRAPPER PRINCIPAL ─────────────────────── */
 #game {
   position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  image-rendering: pixelated;
-  background: #0a0a0a;
-  overflow: hidden;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: #000;
 }
 
+/* Scanlines */
 #game::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px);
+  background: repeating-linear-gradient(
+    0deg, transparent, transparent 2px,
+    rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px
+  );
   pointer-events: none;
-  z-index: 100;
+  z-index: 50;
+}
+
+/* ── ÁREA DE CENA ───────────────────────────  */
+#scene {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
 }
 
 #bg {
   position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 72%;
+  inset: 0;
   background-size: cover;
-  background-position: center;
+  background-position: center top;
   transition: opacity 0.4s ease;
-  image-rendering: pixelated;
 }
-
 #bg.changing { opacity: 0; }
 
+/* ── PERSONAGEM — ancorado à base da scene ─  */
 #character {
   position: absolute;
-  bottom: calc(30% + 10px);
-  left: 30px;
-  width: 72px;
+  bottom: 0;
+  left: 20px;
+  height: min(58%, 170px);
+  width: auto;
   image-rendering: pixelated;
   z-index: 3;
-  filter: drop-shadow(3px 3px 0 rgba(0,0,0,0.7));
-  transition: opacity 0.3s ease;
-}
-
-@keyframes charBob {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-3px); }
-}
-#character:not(.hidden) {
+  filter: drop-shadow(3px 3px 0 rgba(0,0,0,0.8));
   animation: charBob 1.8s ease-in-out infinite;
 }
 
+@keyframes charBob {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-4px); }
+}
+
+/* ── NOME — posicionado por JS ──────────────  */
 #nameBox {
   position: absolute;
-  bottom: calc(30% + 86px);
-  left: 110px;
   background: var(--rpg-panel);
   color: var(--rpg-gold);
   font-family: var(--rpg-font);
-  font-size: 12px;
-  padding: 5px 10px;
+  font-size: clamp(10px, 1.4vw, 13px);
+  padding: 4px 10px;
   z-index: 4;
   letter-spacing: 1px;
   border: 2px solid var(--rpg-gold);
   outline: 2px solid #000;
   box-shadow: 3px 3px 0 #000;
   text-transform: uppercase;
+  white-space: nowrap;
+  /* posição padrão — JS vai sobrescrever */
+  top: auto;
+  bottom: 0;
+  left: 0;
 }
 
-#dialog {
+/* ── HUD ────────────────────────────────────  */
+#stepCounter {
   position: absolute;
-  bottom: 0;
-  width: 100%; height: 30%;
+  top: 6px; left: 8px;
+  z-index: 10;
+  color: var(--rpg-gold);
+  font-size: clamp(9px, 1.2vw, 11px);
+  background: rgba(0,0,0,0.65);
+  padding: 3px 8px;
+  border: 1px solid var(--rpg-gold-dark);
+  letter-spacing: 1px;
+}
+
+#progressBar {
+  position: absolute;
+  top: 6px; right: 8px;
+  z-index: 10;
+  display: flex;
+  gap: 3px;
+  align-items: center;
+}
+.prog-dot {
+  width: 6px; height: 6px;
+  background: #333;
+  border: 1px solid #555;
+  flex-shrink: 0;
+}
+.prog-dot.done {
+  background: var(--dot-cor, var(--rpg-gold));
+  border-color: #fff;
+}
+
+/* ── FEEDBACK QUIZ ──────────────────────────  */
+#feedback {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--rpg-panel);
+  border: 3px solid var(--rpg-gold);
+  outline: 2px solid #000;
+  box-shadow: 4px 4px 0 #000;
+  color: var(--rpg-gold);
+  font-family: var(--rpg-font);
+  font-size: clamp(11px, 1.5vw, 14px);
+  padding: 16px 24px;
+  text-align: center;
+  line-height: 1.8;
+  z-index: 200;
+  display: none;
+  max-width: 85%;
+}
+
+/* ── PAINEL DE DIÁLOGO ──────────────────────  */
+#dialog {
+  flex-shrink: 0;
+  height: var(--dialog-h);
   background: var(--rpg-panel);
   border-top: 4px solid var(--rpg-gold);
-  border-bottom: 4px solid #000;
-  border-left: 4px solid #000;
-  border-right: 4px solid #000;
-  box-sizing: border-box;
-  padding: 10px 12px 8px 12px;
-  box-shadow: inset 0 1px 0 rgba(248,216,112,0.15);
+  padding: 10px 14px 8px 14px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-}
-
-#dialog::before {
-  content: '';
-  position: absolute;
-  top: -8px; left: -4px; right: -4px;
-  height: 4px;
-  background: #000;
+  gap: 6px;
+  position: relative;
+  z-index: 5;
 }
 
 #dialog::after {
   content: '▶';
   position: absolute;
-  right: 12px; bottom: 10px;
+  right: 10px; bottom: 8px;
   color: var(--rpg-gold);
   font-size: 8px;
   opacity: 0;
@@ -138,8 +183,7 @@ body {
 }
 
 #text {
-  font-family: var(--rpg-font);
-  font-size: 13px;
+  font-size: clamp(11px, 1.8vw, 14px);
   line-height: 1.75;
   color: var(--rpg-text);
   letter-spacing: 0.3px;
@@ -148,57 +192,52 @@ body {
 }
 
 #skip {
-  display: block;
   align-self: flex-start;
-  margin-top: 6px;
+  flex-shrink: 0;
   background: var(--rpg-dark);
   color: var(--rpg-gold);
   font-family: var(--rpg-font);
-  font-size: 11px;
-  padding: 6px 14px;
+  font-size: clamp(10px, 1.3vw, 12px);
+  padding: 6px 16px;
   cursor: pointer;
   border: 2px solid var(--rpg-gold);
   outline: 1px solid #000;
   box-shadow: 2px 2px 0 #000;
   letter-spacing: 1px;
-  user-select: none;
-  transition: transform 0.08s, box-shadow 0.08s;
   text-transform: uppercase;
-  flex-shrink: 0;
-  min-height: 36px;
+  min-height: 34px;
   min-width: 80px;
+  transition: transform 0.08s, box-shadow 0.08s;
 }
+#skip:hover  { background: var(--rpg-gold-dark); color: #000; }
 #skip:active { transform: translate(2px,2px); box-shadow: none; }
-#skip:hover { background: var(--rpg-gold-dark); color: #000; }
 
 #choices {
-  margin-top: 6px;
   display: none;
   grid-template-columns: 1fr 1fr;
-  gap: 6px;
+  gap: 5px;
 }
-
 #choices button {
-  padding: 7px 6px;
+  padding: 6px 8px;
   border: 2px solid var(--rpg-gold);
   outline: 1px solid #000;
   background: var(--rpg-panel-light);
   color: var(--rpg-text);
   font-family: var(--rpg-font);
-  font-size: 11px;
+  font-size: clamp(9px, 1.3vw, 11px);
   cursor: pointer;
   box-shadow: 2px 2px 0 #000;
-  transition: transform 0.08s, box-shadow 0.08s, background 0.1s;
   text-align: left;
-  line-height: 1.6;
-  letter-spacing: 0.3px;
+  line-height: 1.5;
+  transition: transform 0.08s, background 0.1s;
 }
-#choices button:hover { background: var(--rpg-gold-dark); color: #000; border-color: #fff; }
+#choices button:hover  { background: var(--rpg-gold-dark); color: #000; }
 #choices button:active { transform: translate(2px,2px); box-shadow: none; }
 
+/* ── TELA FINAL ─────────────────────────────  */
 #finalScreen {
   position: fixed;
-  width: 100%; height: 100%;
+  inset: 0;
   background: rgba(0,0,0,0.97);
   display: none;
   justify-content: center;
@@ -213,39 +252,34 @@ body {
   border: 3px solid var(--rpg-gold);
   outline: 3px solid #000;
   box-shadow: 6px 6px 0 #000, 0 0 0 9px #000, 0 0 0 12px var(--rpg-gold);
-  padding: 30px 36px;
+  padding: 28px 36px;
   text-align: center;
   color: var(--rpg-gold);
   font-family: var(--rpg-font);
-  font-size: 13px;
+  font-size: clamp(11px, 1.5vw, 13px);
   line-height: 2.2;
   letter-spacing: 1px;
-  max-width: 360px;
+  max-width: min(360px, 90vw);
 }
 #finalBox .trophy {
-  font-size: 28px; display: block; margin-bottom: 14px;
+  font-size: 32px; display: block; margin-bottom: 12px;
   animation: spin 2s ease-in-out infinite alternate;
 }
 @keyframes spin {
-  0% { transform: scale(1) rotate(-5deg); }
+  0%   { transform: scale(1) rotate(-5deg); }
   100% { transform: scale(1.1) rotate(5deg); }
 }
 #finalBox .title-line {
-  color: #fff; font-size: 12px; display: block;
-  margin-bottom: 16px;
-  text-shadow: 2px 2px 0 var(--rpg-gold-dark);
-}
-#finalBox .score-line {
-  color: var(--rpg-gold); font-size: 8px;
-  margin-top: 10px; display: block;
+  color: #fff; font-size: clamp(10px,1.4vw,13px); display: block;
+  margin-bottom: 14px; text-shadow: 2px 2px 0 var(--rpg-gold-dark);
 }
 #restartBtn {
-  margin-top: 18px;
+  margin-top: 16px;
   background: var(--rpg-dark);
   color: var(--rpg-gold);
   font-family: var(--rpg-font);
-  font-size: 11px;
-  padding: 8px 18px;
+  font-size: clamp(10px,1.3vw,12px);
+  padding: 8px 20px;
   cursor: pointer;
   border: 2px solid var(--rpg-gold);
   outline: 1px solid #000;
@@ -253,110 +287,46 @@ body {
   letter-spacing: 1px;
   text-transform: uppercase;
 }
-#restartBtn:hover { background: var(--rpg-gold-dark); color: #000; }
+#restartBtn:hover  { background: var(--rpg-gold-dark); color: #000; }
 #restartBtn:active { transform: translate(2px,2px); box-shadow: none; }
 
-#progressBar {
-  position: absolute;
-  top: 6px; right: 10px;
-  z-index: 10;
-  display: flex;
-  gap: 4px;
-  align-items: center;
-}
-.prog-dot {
-  width: 5px; height: 5px;
-  background: #333;
-  border: 1px solid #555;
-  transition: background 0.3s;
-}
-.prog-dot.done {
-  background: var(--dot-cor, var(--rpg-gold));
-  border-color: #fff;
-}
-
-#stepCounter {
-  position: absolute;
-  top: 6px; left: 8px;
-  z-index: 10;
-  color: var(--rpg-gold);
-  font-family: var(--rpg-font);
-  font-size: 11px;
-  background: rgba(0,0,0,0.6);
-  padding: 3px 7px;
-  border: 1px solid var(--rpg-gold-dark);
-  letter-spacing: 1px;
-}
-
-/* === FEEDBACK DE RESPOSTA === */
-#feedback {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: var(--rpg-panel);
-  border: 3px solid var(--rpg-gold);
-  outline: 2px solid #000;
-  box-shadow: 4px 4px 0 #000;
-  color: var(--rpg-gold);
-  font-family: var(--rpg-font);
-  font-size: 13px;
-  padding: 14px 22px;
-  text-align: center;
-  line-height: 1.8;
-  z-index: 200;
-  display: none;
-  max-width: 80%;
-}
-
-/* === RESPONSIVO === */
+/* ── RESPONSIVO ─────────────────────────────  */
 @media (max-width: 600px) and (orientation: portrait) {
-  #bg { height: 65%; }
-  #character { width: 68px; bottom: calc(35% + 8px); left: 10px; }
-  #nameBox { font-size: 11px; bottom: calc(35% + 82px); left: 86px; padding: 4px 8px; }
-  #dialog { height: 35%; padding: 10px 12px 8px 12px; }
-  #text { font-size: 11px; line-height: 1.65; }
-  #skip { font-size: 11px; padding: 7px 14px; min-height: 38px; }
-  #choices { gap: 5px; }
-  #choices button { font-size: 10px; padding: 7px 5px; }
-  #stepCounter { font-size: 9px; }
+  :root { --dialog-h: 34vh; }
 }
-
-@media (orientation: landscape) and (max-height: 500px) {
-  #bg { height: 68%; }
-  #character { bottom: calc(32% + 8px); max-width: 10vw; left: 3vw; }
-  #nameBox { bottom: calc(32% + 10vw + 4px); font-size: clamp(8px,1.3vw,11px); left: 17%; padding: 3px 7px; }
-  #dialog { height: 32%; padding: 6px 12px 6px 12px; }
-  #text { font-size: clamp(9px,1.5vw,12px); line-height: 1.6; }
-  #skip { font-size: clamp(9px,1.3vw,11px); padding: 5px 10px; min-height: 32px; }
-  #choices button { font-size: clamp(8px,1.2vw,11px); padding: clamp(4px,0.8vh,8px) 5px; }
-  #stepCounter { font-size: 9px; }
-  #finalBox { font-size: 10px; padding: 16px 20px; max-width: 70vw; }
+@media (orientation: landscape) and (max-height: 480px) {
+  :root { --dialog-h: 38vh; }
+  #character { height: min(70%, 130px); }
+  #finalBox  { max-width: 70vw; }
 }
 </style>
 </head>
 <body>
 
 <div id="game">
-  <div id="stepCounter">★ CAP.1</div>
-  <div id="progressBar"></div>
-  <div id="bg"></div>
-  <img id="character" src="img/alencar.png" alt="character">
-  <div id="nameBox">Alencar</div>
-  <div id="feedback"></div>
+
+  <div id="scene">
+    <div id="bg"></div>
+    <div id="stepCounter">★ CAP.1</div>
+    <div id="progressBar"></div>
+    <img id="character" src="img/alencar.png" alt="personagem">
+    <div id="nameBox">ALENCAR</div>
+    <div id="feedback"></div>
+  </div>
+
   <div id="dialog">
     <div id="text"></div>
-    <div id="choices" style="display:none"></div>
+    <div id="choices"></div>
     <button id="skip">▶ SKIP</button>
   </div>
+
 </div>
 
 <div id="finalScreen">
   <div id="finalBox">
     <span class="trophy">🏆</span>
     <span class="title-line">PARABÉNS!</span>
-    Você concluiu<br>
-    O Guarani!<br><br>
+    Você concluiu<br>O Guarani!<br><br>
     Quiz: <span id="scoreDisplay">—</span>
     <br>
     <button id="restartBtn">↺ JOGAR NOVAMENTE</button>
@@ -364,11 +334,11 @@ body {
 </div>
 
 <script>
-// ═══════════════════════════════════════════════
-// ROTEIRO COMPLETO
-// ═══════════════════════════════════════════════
+// ════════════════════════════════════════════
+// ROTEIRO
+// ════════════════════════════════════════════
 const cenas = [
-  // ── ALENCAR ──────────────────────────────────
+  // ALENCAR
   { nome:"Alencar", bg:"img/fundo_biblioteca.png", char:"img/alencar.png",
     texto:"Olá, viajante... Eu sou José de Alencar.\nNasci no Ceará em 1829 e me tornei\num dos maiores escritores do Romantismo brasileiro." },
   { nome:"Alencar", bg:null, char:null,
@@ -390,7 +360,7 @@ const cenas = [
   { nome:"Alencar", bg:null, char:null,
     texto:"Espero que ao conhecer Peri e Ceci,\nvocê entenda melhor quem somos nós,\nbrasileiros — filhos desta terra extraordinária." },
 
-  // ── PERI ─────────────────────────────────────
+  // PERI
   { nome:"Peri", bg:"img/fundo_floresta.png", char:"img/peri.png",
     texto:"Eu sou Peri, guerreiro da nação Goitacá.\nNasci livre entre as árvores e os rios.\nA floresta me ensinou tudo o que sei." },
   { nome:"Peri", bg:null, char:null,
@@ -412,7 +382,7 @@ const cenas = [
   { nome:"Peri", bg:null, char:null,
     texto:"No fim, quando o castelo foi destruído,\nsalvei Ceci numa canoa,\nlevando-a para um novo começo." },
 
-  // ── NARRADOR ─────────────────────────────────
+  // NARRADOR
   { nome:"Narrador", bg:"img/fundo_narrador.png", char:"img/narrador.png",
     texto:"A história de O Guarani se passa em 1604,\nno período colonial brasileiro,\nàs margens do Rio Paquequer, no Rio de Janeiro." },
   { nome:"Narrador", bg:null, char:null,
@@ -439,340 +409,279 @@ const cenas = [
     texto:"O Guarani é considerado o romance\nfundador da literatura nacional brasileira.\nSua influência chega até os dias de hoje." }
 ];
 
-// ═══════════════════════════════════════════════
-// QUIZ — perguntas com respostas
-// ═══════════════════════════════════════════════
+// ════════════════════════════════════════════
+// QUIZ
+// ════════════════════════════════════════════
 const quiz = [
-  {
-    pergunta: "Em que ano foi publicado O Guarani?",
-    opcoes: ["1857", "1872", "1840", "1865"],
-    certa: 0,
-    explicacao: "✓ Correto! O Guarani foi publicado em 1857."
-  },
-  {
-    pergunta: "A qual nação indígena pertence Peri?",
-    opcoes: ["Tupi", "Aimoré", "Goitacá", "Guaraní"],
-    certa: 2,
-    explicacao: "✓ Correto! Peri é guerreiro da nação Goitacá."
-  },
-  {
-    pergunta: "Como se chama o vilão disfarçado de frei?",
-    opcoes: ["Dom Antônio", "Loredano", "Álvaro", "Diogo"],
-    certa: 1,
-    explicacao: "✓ Correto! Loredano é o vilão disfarçado de religioso."
-  },
-  {
-    pergunta: "Onde se passa a história (rio)?",
-    opcoes: ["Rio Amazonas", "Rio São Francisco", "Rio Paquequer", "Rio Paraná"],
-    certa: 2,
-    explicacao: "✓ Correto! A história se passa às margens do Rio Paquequer."
-  },
-  {
-    pergunta: "O Guarani pertence a qual trilogia de Alencar?",
-    opcoes: ["Urbana", "Indianista", "Sertaneja", "Histórica"],
-    certa: 1,
-    explicacao: "✓ Correto! Faz parte da trilogia Indianista."
-  }
+  { pergunta:"Em que ano foi publicado O Guarani?",
+    opcoes:["1857","1872","1840","1865"], certa:0,
+    explicacao:"O Guarani foi publicado em 1857." },
+  { pergunta:"A qual nação indígena pertence Peri?",
+    opcoes:["Tupi","Aimoré","Goitacá","Guaraní"], certa:2,
+    explicacao:"Peri é guerreiro da nação Goitacá." },
+  { pergunta:"Como se chama o vilão disfarçado de frei?",
+    opcoes:["Dom Antônio","Loredano","Álvaro","Diogo"], certa:1,
+    explicacao:"Loredano é o vilão disfarçado de frei." },
+  { pergunta:"Às margens de qual rio se passa a história?",
+    opcoes:["Amazonas","São Francisco","Paquequer","Paraná"], certa:2,
+    explicacao:"A história se passa às margens do Rio Paquequer." },
+  { pergunta:"O Guarani pertence a qual trilogia de Alencar?",
+    opcoes:["Urbana","Indianista","Sertaneja","Histórica"], certa:1,
+    explicacao:"Faz parte da trilogia Indianista." }
 ];
-  / ESTADO DO JOGO
-// ═══════════════════════════════════════════════
+
+// ════════════════════════════════════════════
+// ESTADO
+// ════════════════════════════════════════════
 let cenaAtual = 0;
-let typing = false;
-let fullText = "";
-let index = 0;
-let interval;
-let quizStep = 0;
-let score = 0;
-let inQuiz = false;
+let typing    = false;
+let fullText  = "";
+let charIdx   = 0;
+let interval  = null;
+let quizStep  = 0;
+let score     = 0;
+let inQuiz    = false;
 
-const TOTAL_CENAS = cenas.length;
+const TOTAL = cenas.length;
 
-const textEl    = document.getElementById("text");
-const nameBox   = document.getElementById("nameBox");
-const charEl    = document.getElementById("character");
-const choices   = document.getElementById("choices");
-const skipBtn   = document.getElementById("skip");
-const bgEl      = document.getElementById("bg");
-const dialog    = document.getElementById("dialog");
-const stepCounter = document.getElementById("stepCounter");
-const progressBar = document.getElementById("progressBar");
-const feedbackEl  = document.getElementById("feedback");
-const finalScreen = document.getElementById("finalScreen");
+const textEl       = document.getElementById("text");
+const nameBox      = document.getElementById("nameBox");
+const charEl       = document.getElementById("character");
+const choicesEl    = document.getElementById("choices");
+const skipBtn      = document.getElementById("skip");
+const bgEl         = document.getElementById("bg");
+const sceneEl      = document.getElementById("scene");
+const dialogEl     = document.getElementById("dialog");
+const stepCounter  = document.getElementById("stepCounter");
+const progressBar  = document.getElementById("progressBar");
+const feedbackEl   = document.getElementById("feedback");
+const finalScreen  = document.getElementById("finalScreen");
 const scoreDisplay = document.getElementById("scoreDisplay");
-const restartBtn = document.getElementById("restartBtn");
+const restartBtn   = document.getElementById("restartBtn");
 
-// ── SOM ──────────────────────────────────────
-let audioCtx = null;
+// ── POSICIONAR NAMEBOX acima e à direita do char
+function positionNameBox() {
+  const charRect  = charEl.getBoundingClientRect();
+  const sceneRect = sceneEl.getBoundingClientRect();
+  const charTop   = charRect.top  - sceneRect.top;
+  const charLeft  = charRect.left - sceneRect.left;
+  const charW     = charRect.width;
 
-function getAudioCtx() {
-  if (!audioCtx) {
-    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
-    catch(e) { return null; }
+  // Tenta colocar à direita do personagem
+  let nbLeft = charLeft + charW + 6;
+  let nbTop  = Math.max(4, charTop - 4);
+
+  // Se sair da tela, coloca acima
+  if (nbLeft + 100 > sceneRect.width) {
+    nbLeft = charLeft;
+    nbTop  = Math.max(4, charTop - 32);
   }
-  if (audioCtx.state === 'suspended') audioCtx.resume();
-  return audioCtx;
+
+  nameBox.style.top    = nbTop  + "px";
+  nameBox.style.left   = nbLeft + "px";
+  nameBox.style.bottom = "auto";
 }
 
-function playTypeSound() {
-  const ctx = getAudioCtx();
-  if (!ctx) return;
-  try {
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.type = 'sine';
-    osc.frequency.value = 520 + Math.random() * 180;
-    gain.gain.setValueAtTime(0.12, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.04);
-  } catch(e) {}
-}
+window.addEventListener("resize", positionNameBox);
 
-function playCorrect() {
-  const ctx = getAudioCtx();
-  if (!ctx) return;
-  try {
-    [523, 659, 784].forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.type = 'square';
-      osc.frequency.value = freq;
-      const t = ctx.currentTime + i * 0.12;
-      gain.gain.setValueAtTime(0.15, t);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
-      osc.start(t); osc.stop(t + 0.15);
-    });
-  } catch(e) {}
-}
-
-function playWrong() {
-  const ctx = getAudioCtx();
-  if (!ctx) return;
-  try {
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.type = 'sawtooth';
-    osc.frequency.value = 180;
-    gain.gain.setValueAtTime(0.2, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
-    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.3);
-  } catch(e) {}
-}
-
-// ── PROGRESS BAR ─────────────────────────────
-const segmentos = [
-  { cor: "#f8d870", total: 10 },
-  { cor: "#7adf7a", total: 10 },
-  { cor: "#7ab8f5", total: 12 }
-];
+// ── PROGRESS BAR ───────────────────────────
+const segCores = Array(10).fill("#f8d870")
+  .concat(Array(10).fill("#7adf7a"))
+  .concat(Array(12).fill("#7ab8f5"));
 
 (function buildProgress() {
   progressBar.innerHTML = "";
-  let idx = 0;
-  segmentos.forEach(seg => {
-    for (let i = 0; i < seg.total; i++) {
-      const dot = document.createElement('div');
-      dot.className = 'prog-dot';
-      dot.id = 'dot-' + idx;
-      dot.style.setProperty('--dot-cor', seg.cor);
-      progressBar.appendChild(dot);
-      idx++;
-    }
-  });
+  for (let i = 0; i < TOTAL; i++) {
+    const d = document.createElement("div");
+    d.className = "prog-dot";
+    d.id = "dot-" + i;
+    d.style.setProperty("--dot-cor", segCores[i]);
+    progressBar.appendChild(d);
+  }
 })();
 
 function updateProgress() {
-  for (let i = 0; i < TOTAL_CENAS; i++) {
-    const dot = document.getElementById('dot-' + i);
-    if (!dot) continue;
-    dot.classList.toggle('done', i < cenaAtual);
+  for (let i = 0; i < TOTAL; i++) {
+    const d = document.getElementById("dot-" + i);
+    if (d) d.classList.toggle("done", i < cenaAtual);
   }
-  if (cenaAtual < 10) {
-    stepCounter.textContent = "ALENCAR " + (cenaAtual + 1) + "/10";
-  } else if (cenaAtual < 20) {
-    stepCounter.textContent = "PERI " + (cenaAtual - 9) + "/10";
-  } else {
-    stepCounter.textContent = "NARRADOR " + (cenaAtual - 19) + "/12";
-  }
+  if      (cenaAtual < 10) stepCounter.textContent = "ALENCAR "  + (cenaAtual + 1)  + "/10";
+  else if (cenaAtual < 20) stepCounter.textContent = "PERI "     + (cenaAtual - 9)  + "/10";
+  else                     stepCounter.textContent = "NARRADOR " + (cenaAtual - 19) + "/12";
 }
 
-// ── TROCA DE FUNDO ───────────────────────────
+// ── FUNDO ───────────────────────────────────
 function changeBg(url, instant) {
-  if (instant) {
-    bgEl.style.backgroundImage = "url('" + url + "')";
-    return;
-  }
-  bgEl.classList.add('changing');
+  if (instant) { bgEl.style.backgroundImage = "url('" + url + "')"; return; }
+  bgEl.classList.add("changing");
   setTimeout(() => {
     bgEl.style.backgroundImage = "url('" + url + "')";
-    bgEl.classList.remove('changing');
+    bgEl.classList.remove("changing");
   }, 300);
 }
 
-// ── DIGITAÇÃO ────────────────────────────────
-function typeText(sentence) {
-  typing = true;
-  dialog.classList.remove('done');
-  fullText = sentence;
-  index = 0;
-  textEl.innerHTML = "";
+// ── SOM ─────────────────────────────────────
+let audioCtx = null;
+function getCtx() {
+  if (!audioCtx) {
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) { return null; }
+  }
+  if (audioCtx.state === "suspended") audioCtx.resume();
+  return audioCtx;
+}
+function beep(freq, type, vol, dur, delay) {
+  const ctx = getCtx(); if (!ctx) return;
+  delay = delay || 0;
+  try {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type = type; o.frequency.value = freq;
+    const t = ctx.currentTime + delay;
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.start(t); o.stop(t + dur);
+  } catch(e) {}
+}
+function playType()    { beep(520 + Math.random()*180, "sine",     0.10, 0.04); }
+function playCorrect() { [523,659,784].forEach((f,i) => beep(f,"square",0.13,0.14, i*0.11)); }
+function playWrong()   { beep(160, "sawtooth", 0.18, 0.3); }
 
+// ── DIGITAÇÃO ───────────────────────────────
+function typeText(txt) {
+  typing = true;
+  dialogEl.classList.remove("done");
+  fullText = txt;
+  charIdx = 0;
+  textEl.innerHTML = "";
+  clearInterval(interval);
   interval = setInterval(() => {
-    if (fullText[index] === "\n") {
-      textEl.innerHTML += "<br>";
-    } else {
-      textEl.innerHTML += fullText[index];
-      playTypeSound();
-    }
-    index++;
-    if (index >= fullText.length) {
+    const ch = fullText[charIdx];
+    if (ch === "\n") textEl.innerHTML += "<br>";
+    else { textEl.innerHTML += ch; playType(); }
+    charIdx++;
+    if (charIdx >= fullText.length) {
       clearInterval(interval);
       typing = false;
-      dialog.classList.add('done');
+      dialogEl.classList.add("done");
     }
   }, 22);
 }
 
-// ── SKIP ─────────────────────────────────────
-skipBtn.onclick = function () {
+// ── SKIP ────────────────────────────────────
+skipBtn.onclick = function() {
   if (inQuiz) return;
   if (typing) {
     clearInterval(interval);
     textEl.innerHTML = fullText.replace(/\n/g, "<br>");
     typing = false;
-    dialog.classList.add('done');
+    dialogEl.classList.add("done");
   } else {
     next();
   }
 };
 
-// ── AVANÇAR CENA ─────────────────────────────
+// ── PRÓXIMA CENA ────────────────────────────
 function next() {
   if (typing || inQuiz) return;
-  // Se o quiz de escolhas está visível, não avança
-  if (choices.style.display === "grid") return;
+  if (choicesEl.style.display === "grid") return;
+  if (cenaAtual >= TOTAL) { startQuiz(); return; }
 
-  if (cenaAtual >= TOTAL_CENAS) {
-    startQuiz();
-    return;
+  const c = cenas[cenaAtual];
+
+  if (c.bg)   changeBg(c.bg, cenaAtual === 0);
+
+  if (c.char) {
+    charEl.src = c.char;
+    charEl.style.visibility = "visible";
+    // Posiciona após carregar
+    charEl.onload = positionNameBox;
+    if (charEl.complete && charEl.naturalWidth > 0) positionNameBox();
+  } else {
+    // mantém char atual, só reposiciona nameBox
+    positionNameBox();
   }
 
-  const cena = cenas[cenaAtual];
-
-  if (cena.bg) changeBg(cena.bg, cenaAtual === 0);
-
-  if (cena.char) {
-    charEl.style.display = "block";
-    charEl.src = cena.char;
-  }
-
-  nameBox.innerText = cena.nome;
-  updateProgress();
+  nameBox.textContent = c.nome.toUpperCase();
+  choicesEl.style.display = "none";
+  choicesEl.innerHTML = "";
   skipBtn.style.display = "block";
-  choices.style.display = "none";
-  choices.innerHTML = "";
-
-  typeText(cena.texto);
+  updateProgress();
+  typeText(c.texto);
   cenaAtual++;
 }
 
-// ── QUIZ ─────────────────────────────────────
+// ── QUIZ ────────────────────────────────────
 function startQuiz() {
-  inQuiz = true;
-  quizStep = 0;
-  score = 0;
+  inQuiz = true; quizStep = 0; score = 0;
   skipBtn.style.display = "none";
-  nameBox.innerText = "QUIZ";
-  charEl.style.display = "none";
+  nameBox.textContent = "QUIZ";
+  charEl.style.visibility = "hidden";
   stepCounter.textContent = "QUIZ";
-  showQuizQuestion();
+  showQ();
 }
 
-function showQuizQuestion() {
-  if (quizStep >= quiz.length) {
-    endGame();
-    return;
-  }
-
+function showQ() {
+  if (quizStep >= quiz.length) { endGame(); return; }
   const q = quiz[quizStep];
-  textEl.innerHTML = "<b>" + (quizStep + 1) + "/" + quiz.length + "</b> — " + q.pergunta;
-  dialog.classList.remove('done');
-
-  choices.style.display = "grid";
-  choices.innerHTML = "";
-
+  textEl.innerHTML = "<b>" + (quizStep+1) + "/" + quiz.length + "</b> — " + q.pergunta;
+  dialogEl.classList.remove("done");
+  choicesEl.innerHTML = "";
+  choicesEl.style.display = "grid";
   q.opcoes.forEach((op, i) => {
     const btn = document.createElement("button");
     btn.textContent = op;
-    btn.onclick = () => handleAnswer(i);
-    choices.appendChild(btn);
+    btn.onclick = () => answer(i);
+    choicesEl.appendChild(btn);
   });
 }
 
-function handleAnswer(chosen) {
+function answer(chosen) {
   const q = quiz[quizStep];
-  const correct = chosen === q.certa;
-
-  // Desabilita botões imediatamente
-  Array.from(choices.children).forEach((btn, i) => {
-    btn.disabled = true;
-    if (i === q.certa) btn.style.background = "#2a5a2a";
-    else if (i === chosen && !correct) btn.style.background = "#5a1a1a";
+  const ok = chosen === q.certa;
+  if (ok) score++;
+  Array.from(choicesEl.children).forEach((b, i) => {
+    b.disabled = true;
+    if (i === q.certa)           b.style.background = "#1a4a1a";
+    else if (i === chosen && !ok) b.style.background = "#4a1a1a";
   });
-
-  if (correct) {
-    score++;
-    playCorrect();
-    showFeedback("✓ " + q.explicacao, true);
-  } else {
-    playWrong();
-    showFeedback("✗ Errado! " + q.explicacao, false);
-  }
+  if (ok) { playCorrect(); showFeedback("✓ " + q.explicacao, true); }
+  else    { playWrong();   showFeedback("✗ Errado! " + q.explicacao, false); }
 }
 
 function showFeedback(msg, ok) {
   feedbackEl.style.display = "block";
   feedbackEl.style.borderColor = ok ? "#7adf7a" : "#df5a5a";
-  feedbackEl.style.color = ok ? "#7adf7a" : "#df7a7a";
-  feedbackEl.innerHTML = msg;
-
+  feedbackEl.style.color       = ok ? "#7adf7a" : "#df7a7a";
+  feedbackEl.textContent = msg;
   setTimeout(() => {
     feedbackEl.style.display = "none";
     quizStep++;
-    showQuizQuestion();
+    showQ();
   }, 1800);
 }
 
 function endGame() {
   inQuiz = false;
   finalScreen.style.display = "flex";
-  const pct = Math.round((score / quiz.length) * 100);
-  scoreDisplay.textContent = score + " de " + quiz.length + " corretas (" + pct + "%)";
+  scoreDisplay.textContent = score + " de " + quiz.length + " (" + Math.round(score/quiz.length*100) + "%)";
 }
 
-// ── RESTART ──────────────────────────────────
-restartBtn.onclick = function () {
-  cenaAtual = 0;
-  quizStep = 0;
-  score = 0;
-  inQuiz = false;
-  typing = false;
+// ── REINICIAR ───────────────────────────────
+restartBtn.onclick = function() {
+  cenaAtual = 0; quizStep = 0; score = 0;
+  inQuiz = false; typing = false;
   clearInterval(interval);
   finalScreen.style.display = "none";
-  choices.style.display = "none";
-  choices.innerHTML = "";
+  choicesEl.style.display = "none";
+  choicesEl.innerHTML = "";
   skipBtn.style.display = "block";
-  charEl.style.display = "block";
+  charEl.style.visibility = "visible";
   textEl.innerHTML = "";
   updateProgress();
   next();
 };
 
-// ── INICIAR ──────────────────────────────────
+// ── INICIAR ─────────────────────────────────
 next();
 </script>
 </body>
