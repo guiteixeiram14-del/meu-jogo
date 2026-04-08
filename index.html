@@ -61,7 +61,7 @@ body {
 
 #character {
   position: absolute;
-  bottom: 90px;
+  bottom: calc(30% + 10px);
   left: 30px;
   width: 72px;
   image-rendering: pixelated;
@@ -80,7 +80,7 @@ body {
 
 #nameBox {
   position: absolute;
-  bottom: 150px;
+  bottom: calc(30% + 86px);
   left: 110px;
   background: var(--rpg-panel);
   color: var(--rpg-gold);
@@ -173,11 +173,10 @@ body {
 
 #choices {
   margin-top: 6px;
-  display: grid;
+  display: none;
   grid-template-columns: 1fr 1fr;
   gap: 6px;
 }
-#choices.hidden { display: none; }
 
 #choices button {
   padding: 7px 6px;
@@ -313,8 +312,8 @@ body {
 /* === RESPONSIVO === */
 @media (max-width: 600px) and (orientation: portrait) {
   #bg { height: 65%; }
-  #character { width: 68px; bottom: 31%; left: 10px; }
-  #nameBox { font-size: 11px; bottom: calc(31% + 78px); left: 86px; padding: 4px 8px; }
+  #character { width: 68px; bottom: calc(35% + 8px); left: 10px; }
+  #nameBox { font-size: 11px; bottom: calc(35% + 82px); left: 86px; padding: 4px 8px; }
   #dialog { height: 35%; padding: 10px 12px 8px 12px; }
   #text { font-size: 11px; line-height: 1.65; }
   #skip { font-size: 11px; padding: 7px 14px; min-height: 38px; }
@@ -325,8 +324,8 @@ body {
 
 @media (orientation: landscape) and (max-height: 500px) {
   #bg { height: 68%; }
-  #character { bottom: 30%; max-width: 10vw; left: 3vw; }
-  #nameBox { bottom: 37%; font-size: clamp(8px,1.3vw,11px); left: 17%; padding: 3px 7px; }
+  #character { bottom: calc(32% + 8px); max-width: 10vw; left: 3vw; }
+  #nameBox { bottom: calc(32% + 10vw + 4px); font-size: clamp(8px,1.3vw,11px); left: 17%; padding: 3px 7px; }
   #dialog { height: 32%; padding: 6px 12px 6px 12px; }
   #text { font-size: clamp(9px,1.5vw,12px); line-height: 1.6; }
   #skip { font-size: clamp(9px,1.3vw,11px); padding: 5px 10px; min-height: 32px; }
@@ -347,7 +346,7 @@ body {
   <div id="feedback"></div>
   <div id="dialog">
     <div id="text"></div>
-    <div id="choices" class="hidden"></div>
+    <div id="choices" style="display:none"></div>
     <button id="skip">▶ SKIP</button>
   </div>
 </div>
@@ -475,9 +474,7 @@ const quiz = [
     explicacao: "✓ Correto! Faz parte da trilogia Indianista."
   }
 ];
-
-// ═══════════════════════════════════════════════
-// ESTADO DO JOGO
+  / ESTADO DO JOGO
 // ═══════════════════════════════════════════════
 let cenaAtual = 0;
 let typing = false;
@@ -604,7 +601,11 @@ function updateProgress() {
 }
 
 // ── TROCA DE FUNDO ───────────────────────────
-function changeBg(url) {
+function changeBg(url, instant) {
+  if (instant) {
+    bgEl.style.backgroundImage = "url('" + url + "')";
+    return;
+  }
   bgEl.classList.add('changing');
   setTimeout(() => {
     bgEl.style.backgroundImage = "url('" + url + "')";
@@ -652,7 +653,8 @@ skipBtn.onclick = function () {
 // ── AVANÇAR CENA ─────────────────────────────
 function next() {
   if (typing || inQuiz) return;
-  if (!choices.classList.contains("hidden")) return;
+  // Se o quiz de escolhas está visível, não avança
+  if (choices.style.display === "grid") return;
 
   if (cenaAtual >= TOTAL_CENAS) {
     startQuiz();
@@ -661,7 +663,7 @@ function next() {
 
   const cena = cenas[cenaAtual];
 
-  if (cena.bg) changeBg(cena.bg);
+  if (cena.bg) changeBg(cena.bg, cenaAtual === 0);
 
   if (cena.char) {
     charEl.style.display = "block";
@@ -671,7 +673,7 @@ function next() {
   nameBox.innerText = cena.nome;
   updateProgress();
   skipBtn.style.display = "block";
-  choices.classList.add("hidden");
+  choices.style.display = "none";
   choices.innerHTML = "";
 
   typeText(cena.texto);
@@ -700,7 +702,7 @@ function showQuizQuestion() {
   textEl.innerHTML = "<b>" + (quizStep + 1) + "/" + quiz.length + "</b> — " + q.pergunta;
   dialog.classList.remove('done');
 
-  choices.classList.remove("hidden");
+  choices.style.display = "grid";
   choices.innerHTML = "";
 
   q.opcoes.forEach((op, i) => {
@@ -761,7 +763,7 @@ restartBtn.onclick = function () {
   typing = false;
   clearInterval(interval);
   finalScreen.style.display = "none";
-  choices.classList.add("hidden");
+  choices.style.display = "none";
   choices.innerHTML = "";
   skipBtn.style.display = "block";
   charEl.style.display = "block";
